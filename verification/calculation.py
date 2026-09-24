@@ -163,9 +163,12 @@ class Statistics:
 class Calculation:
     """The calculation of Section 4.5 applied to one state, with the fixed history graph.
 
-    The three procedures of Section 4.5 are generators: each yields one
-    result per branch. A queue is a tuple, so appending a symbol in one
-    branch never changes the queue of another.
+    Algorithm 1 in the paper describes a single branch, in which Extend(k)
+    may split the calculation. Here Extend and the two loops of Algorithm 1
+    (choosing the queen and searching for a free row) are generators that
+    yield once per branch, so successors() carries out every branch. A queue
+    is a tuple, so appending a symbol in one branch never changes the queue
+    of another.
     """
 
     def __init__(self, graph: HistoryGraph, state: State,
@@ -182,7 +185,8 @@ class Calculation:
         return self.graph.symbols_after(vertex)
 
     def extend_queue(self, Q: tuple, k: int) -> Iterator[tuple]:
-        """ExtendQueue(Q, k): every queue reached by requests until |Q| >= k.
+        """Extend(k) of Algorithm 1, in every branch: yield each queue reached
+        from Q by requests until |Q| >= k.
 
         A branch whose request finds no outgoing edge stops and yields nothing.
         """
@@ -238,11 +242,13 @@ class Calculation:
     # ------------------------------------------------ the four stages (Section 4.5)
 
     def choose_queen(self, Q: tuple, r: int) -> Iterator[tuple[int | None, tuple]]:
-        """ChooseQueen(Q, r): yield (r, T) for the first candidate at or after r
-        that passes all five tests, or (None, T) for an upper queen.
+        """The loop of Algorithm 1 that chooses the queen, from candidate r on,
+        in every branch: yield (r, T) for the first candidate that passes all
+        five tests, or (None, T) for an upper queen.
 
-        T is the queue after the requests made while testing; a rejected
-        candidate passes its extended queue on to the next test.
+        T is the branch's queue after the requests made while testing. The loop
+        is written recursively, so that after a request splits the calculation,
+        each branch goes on to the next candidate with its own queue.
         """
         s = self.s
         if r > s.w:
@@ -267,8 +273,9 @@ class Calculation:
         return self.graph.destination(self.s.H_out, symbol)
 
     def find_free_row(self, Q: tuple, h: int, R_tilde: frozenset) -> Iterator[tuple[int, tuple]]:
-        """FindFreeRow(Q, h, R~): yield (mu, T), where mu is the first offset
-        >= h whose row holds neither a recorded lower queen nor an upper queen."""
+        """The row search of Algorithm 1, from offset h on, in every branch:
+        yield (mu, T), where mu is the first offset >= h whose row holds neither
+        a recorded lower queen nor an upper queen, and T is the branch's queue."""
         for T in self.extend_queue(Q, h + 1):
             if h not in R_tilde and row_bit(T[h]) == 0:
                 yield h, T

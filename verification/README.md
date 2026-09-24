@@ -107,9 +107,9 @@ Outputs are written to `results/`.
 ### The two verifiers
 
 `verify_tuples.py` follows the paper closely: `calculation.py` stores the
-eight records as a named tuple and implements the three procedures of
-Algorithm 1 (`ExtendQueue`, `ChooseQueen`, `FindFreeRow`) as generators that
-yield one result per branch. `verify_bitmasks.py` shares no code with it. It
+eight records as a named tuple and implements Algorithm 1 with generators
+that yield one result per branch: `extend_queue` for Extend, and
+`choose_queen` and `find_free_row` for its two loops. `verify_bitmasks.py` shares no code with it. It
 packs the records into integers, splits each symbol into its two bits, and
 handles branching with explicit work lists. `compare_verifiers.py` converts
 both to one encoding and compares every state and its complete set of
