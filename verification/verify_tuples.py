@@ -7,10 +7,10 @@ Checks, with the history graph held fixed and no edges added:
   1. the graph is well formed (every edge ends at a vertex);
   2. the starting board (Section 6.1): the word sigma_1 ... sigma_29 follows
      the graph, every lower queen before column 30 satisfies |d_j - j| <= 4,
-     and the state before column 30 satisfies the bounds of Section 5.1 with
+     and the state before column 30 satisfies the bounds of Section 5 with
      U(m-1) >= 12;
   3. from every state reached, every branch of the calculation passes the
-     output check and gives a successor satisfying the bounds of Section 5.1.
+     output check and gives a successor satisfying the bounds of Section 5.
 
 Any failure stops the program with an error; no branch is ever dropped to
 make the check pass. The states reached form the state graph of Section 4.5.

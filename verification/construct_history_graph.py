@@ -7,7 +7,7 @@ sigma_1 ... sigma_{N-1} and the edges between consecutive windows. Then run
 the calculation on every state reached from the state before column N, with
 one difference: when a computed symbol fails the output check, its edge (and
 the destination vertex) is added to the graph instead of causing an error. A
-successor violating the bounds of Section 5.1 is still an error. An added
+successor violating the bounds of Section 5 is still an error. An added
 edge is a new answer to later requests, so the exploration is repeated until
 a complete pass adds no edge.
 

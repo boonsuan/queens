@@ -4,7 +4,7 @@
 
 For each length L, run construct_history_graph.py with histories of length L,
 the same start before column 30, the same calculation, and the same bounds
-of Section 5.1. A length fails when the construction reaches a successor
+of Section 5. A length fails when the construction reaches a successor
 violating the bounds; the violating state is recorded. A graph that closes is
 checked again, with its edges fixed, by the exhaustive check of
 verify_tuples.py. Lengths below 4 are not tried: since z >= -4, the upper

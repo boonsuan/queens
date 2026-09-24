@@ -13,7 +13,7 @@ Every program in this directory starts from one of two state graphs:
 
 Each graph is explored with its history graph held fixed, by verify_tuples.py
 of ../verification: every branch is followed, and a missing output edge or a
-successor violating the bounds of Section 5.1 is an error. So loading a saved graph file
+successor violating the bounds of Section 5 is an error. So loading a saved graph file
 is safe: it is checked in full every time it is used.
 
 The actual greedy process is a single walk in each state graph, starting at
@@ -117,7 +117,7 @@ def check_start_before_column_80() -> dict:
     w = -3, z = -2, R = D = A = empty. The input history, queue, and output
     history hold sigma_11..sigma_50, sigma_51..sigma_79, sigma_40..sigma_79,
     so every stored index is positive and below 80. The hypothesis of
-    the lemma of Section 5.2 is U(m-1) >= 12 (not 40), and it holds.
+    the lemma of Section 5 is U(m-1) >= 12 (not 40), and it holds.
     """
     state, board = local_state(greedy_queens(80), 80, memory=40)
     records = {'m': board.m, 'd': board.d, 'U(m-1)': board.kappa, 'w': state.w, 'z': state.z,

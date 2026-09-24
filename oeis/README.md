@@ -59,14 +59,14 @@ It has 2092 history vertices and 2603 history edges, and 7014 states and
 
 The twelve-symbol graph is too coarse for some of the statements, so the
 verification is repeated with histories of length 40. Keep the records
-w, z, R, D, A, Q, the bounds of Section 5.1, and the calculation of Section 4.5, but let
+w, z, R, D, A, Q, the bounds of Section 5, and the calculation of Section 4.5, but let
 `H_in` and `H_out` hold the last 40 symbols instead of 12. The history graph
 then has words of length 40 as vertices. The construction of Section 6.2,
 with length 40, starting from the windows of sigma_1 ... sigma_79, closes
 after twenty explorations with 16876 vertices and 17499 edges. With this
 graph held fixed, the exhaustive check of Section 6.3 from the state before
 column 80 reaches 29267 states and 30000 state edges. Every output check
-passes, every successor satisfies the bounds of Section 5.1, and no request meets a
+passes, every successor satisfies the bounds of Section 5, and no request meets a
 vertex without outgoing edges.
 
 The induction of Section 6.4 then applies to the forty-symbol graph, so the
@@ -78,7 +78,7 @@ actual process is a walk in it from column 80 on. Two points need checking.
   sigma_51 ... sigma_79, and the output history sigma_40 ... sigma_79, so
   every stored index is positive. The word sigma_1 ... sigma_79 follows the
   graph, and every lower queen before column 80 has |d_j - j| <= 4.
-* **The lemma of Section 5.2 with longer histories.** The only part of its proof that
+* **The lemma of Section 5 with longer histories.** The only part of its proof that
   depends on the history length concerns information left out of the
   records. An upper column omitted from a forty-symbol history has offset
   at most -41, which is further in the past than the offsets at most -13

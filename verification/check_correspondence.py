@@ -1,4 +1,4 @@
-"""A finite consistency check of Section 5.2 against 3000 directly computed queens.
+"""A finite consistency check of the lemma of Section 5 against 3000 directly computed queens.
 
     python check_correspondence.py
 

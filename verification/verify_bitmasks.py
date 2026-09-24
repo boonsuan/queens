@@ -66,7 +66,7 @@ def input_vertex(uh, bh, uq, bq, qlen):
 
 
 def within_bounds(s):
-    """The bounds of Section 5.1: w <= 4, -4 <= z <= 5, R, D within [1..4]."""
+    """The bounds of Section 5: w <= 4, -4 <= z <= 5, R, D within [1..4]."""
     w, z, R, D = s[:4]
     return w <= 4 and -4 <= z <= 5 and R < 32 and not R & 1 and D < 32 and not D & 1
 

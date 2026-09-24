@@ -81,7 +81,7 @@ complete pass adds nothing. It takes 14 passes and produces exactly
 finished graph with no edges added.
 
 The second repeats the construction with other history lengths. Lengths 4
-through 11 reach a state violating the bounds of Section 5.1; lengths 12, 13,
+through 11 reach a state violating the bounds of Section 5; lengths 12, 13,
 and 14 close. So twelve is the shortest history that works with these records
 and bounds.
 
@@ -97,8 +97,8 @@ Outputs are written to `results/`.
 | `verify_tuples.py` | §6.1, §6.3 | The exhaustive check, using `calculation.py` |
 | `verify_bitmasks.py` | §6.3 | An independent implementation of the same check |
 | `compare_verifiers.py` | App. A | Compares the two state graphs state by state |
-| `actual_branch.py` | §5.2 | The branch that reads the actual earlier symbols, checked against the board |
-| `check_correspondence.py` | §5.2, App. A | Runs that branch on columns 30–2999 |
+| `actual_branch.py` | §5 | The branch that reads the actual earlier symbols, checked against the board |
+| `check_correspondence.py` | §5, App. A | Runs that branch on columns 30–2999 |
 | `trace.py` | §4.6 | Prints the actual steps column by column |
 | `test_rejection.py` | App. A | Both verifiers reject a damaged graph |
 | `construct_history_graph.py` | §6.2 | Builds the history graph |

@@ -61,7 +61,7 @@ def row_bit(symbol: int) -> int:
 
 
 def satisfies_condition(s: State) -> bool:
-    """The bounds of Section 5.1: w <= 4, -4 <= z <= 5, and R, D contained in [1..4]."""
+    """The bounds of Section 5: w <= 4, -4 <= z <= 5, and R, D contained in [1..4]."""
     return (s.w <= 4 and -4 <= s.z <= 5
             and all(1 <= a <= 4 for a in s.R)
             and all(1 <= a <= 4 for a in s.D))
