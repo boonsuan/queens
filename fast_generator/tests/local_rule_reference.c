@@ -3,7 +3,7 @@
  * Section 7.2, used only to test the table-driven generator.
  *
  * Each Producer holds the bounded record of Section 7.2: w, z, R, D, A, the last four
- * upper-column bits before m, and the queue Q. next_symbol() performs one
+ * column bits before m, and the queue Q. next_symbol() performs one
  * complete queen-placement step (Section 4.5). When the step needs a symbol
  * beyond the end of Q, it asks a child producer, a second copy of the same
  * calculation started at the seed, for its next symbol (Section 7.1). No
@@ -145,7 +145,7 @@ static void make_seed(void)
 }
 
 /* Result bits: symbol in 0..1, row advance in 2..4, chosen r in 5..7.
- * The chosen-r field is unused when the symbol's upper-column bit is set. */
+ * The chosen-r field is unused when the symbol's column bit is set. */
 static unsigned next_symbol(Producer *p);
 
 static void ensure(Producer *p, uint32_t *queue, unsigned *length, int needed)

@@ -3,7 +3,7 @@
     python runs_and_gaps.py
 
 Proof of the corollary "Column runs and gaps", first paragraph. Project each symbol s = 2u + b of
-the queen word to its upper-column bit u = s >> 1. By the induction of
+the queen word to its column bit u = s >> 1. By the induction of
 Section 6.4, every twelve consecutive symbols sigma_i ... sigma_{i+11}
 (i >= 1) form a vertex of the twelve-symbol history graph. This program
 checks that no projected vertex contains 0000 or 111111. So among columns

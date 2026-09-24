@@ -10,7 +10,7 @@ reach the same states with the same successors.
 
 A state is the tuple (w, z, R, D, A, uh, bh, uq, bq, qlen, hout):
     R, D, A    bit masks: bit a is set when offset a belongs to the set
-    uh, bh     upper-column and upper-row bits of H_in; bit 0 is index m-12
+    uh, bh     column and row bits of H_in; bit 0 is index m-12
                and bit 11 is index m-1
     uq, bq     the same bits of Q; bit h is index m+h
     qlen       the length of Q

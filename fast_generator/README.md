@@ -18,7 +18,7 @@ Section 3), and the records of both measurements.
 ## How the code follows Section 7
 
 **Records (Section 7.2).** The local calculation keeps only the bounded
-record w, z, R, D, A, the upper-column bits u<sub>m−4</sub> … u<sub>m−1</sub>,
+record w, z, R, D, A, the column bits u<sub>m−4</sub> … u<sub>m−1</sub>,
 and the queue Q. `LocalRule.step` in `tools/build_tables.py` is this
 calculation, one queen per call. It starts from the board before column 30,
 computed directly from the greedy rule, with w = 0, z = −1, R = A = ∅,

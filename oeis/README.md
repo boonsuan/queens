@@ -96,7 +96,7 @@ not widen the range of fresh inputs.
 ### Derived graphs
 
 The output symbol of a state edge S -> S' taken before column n + 1 is
-sigma_n, the last symbol of S'.H_out, and its upper-column bit
+sigma_n, the last symbol of S'.H_out, and its column bit
 u_n = [q_n > n] is sigma_n >> 1.
 
 * **The gap graph.** Its vertices are the states immediately after an
@@ -117,7 +117,7 @@ none is ever removed to obtain a desired answer.
 ### Column runs and gaps (Section 6.5)
 
 *Upper bounds* (`runs_and_gaps.py`). Project each symbol of the queen word
-to its upper-column bit. By the induction of Section 6.4, every twelve
+to its column bit. By the induction of Section 6.4, every twelve
 consecutive symbols sigma_i ... sigma_{i+11} with i >= 1 form a vertex of
 the twelve-symbol history graph, and no projected vertex contains `0000` or
 `111111`. So lower runs have length at most 3, upper runs at most 5, gaps

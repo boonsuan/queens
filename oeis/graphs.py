@@ -18,7 +18,7 @@ is safe: it is checked in full every time it is used.
 
 The actual greedy process is a single walk in each state graph, starting at
 the initial state; the output symbol of the edge S -> S' taken before column
-n+1 is sigma_n, the last symbol of S'.H_out. Its upper-column bit
+n+1 is sigma_n, the last symbol of S'.H_out. Its column bit
 u_n = [q_n > n] is sigma_n >> 1. Two graphs are derived from a state graph
 by contracting paths, as in Appendix A:
 

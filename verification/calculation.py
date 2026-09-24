@@ -15,7 +15,7 @@ of every branch that does not stop.
 
 Notation, as in the paper:
     state    (w, z, R, D, A, H_in, Q, H_out)                 Section 4.2
-    symbol   2u + b, with upper-column bit u and upper-row bit b
+    symbol   2u + b, with column bit u and row bit b
     offset   h for column (or row) m + h, where m is the least unused row
 """
 from __future__ import annotations
@@ -51,12 +51,12 @@ class State(NamedTuple):
 
 
 def upper(symbol: int) -> int:
-    """The upper-column bit u of a symbol 2u + b."""
+    """The column bit u of a symbol 2u + b."""
     return symbol >> 1
 
 
 def row_bit(symbol: int) -> int:
-    """The upper-row bit b of a symbol 2u + b."""
+    """The row bit b of a symbol 2u + b."""
     return symbol & 1
 
 

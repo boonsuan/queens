@@ -8,7 +8,7 @@ of Section 5. A length fails when the construction reaches a successor
 violating the bounds; the violating state is recorded. A graph that closes is
 checked again, with its edges fixed, by the exhaustive check of
 verify_tuples.py. Lengths below 4 are not tried: since z >= -4, the upper
-tests can involve the upper-column bits of columns m-4, ..., m-1, so the
+tests can involve the column bits of columns m-4, ..., m-1, so the
 input history must contain them.
 
 Result: lengths 4 through 11 fail and 12, 13, 14 close. The results are

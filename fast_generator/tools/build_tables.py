@@ -44,7 +44,7 @@ BLOCK = 4     # input symbols per table lookup: four two-bit symbols = one byte
 # (w, z, R, D, A, past, Q):
 #   w, z     integers, as in Section 4;
 #   R, D, A  the offset sets (12), stored as bit masks (bit a <=> a in set);
-#   past     the upper-column bits u_{m-4} u_{m-3} u_{m-2} u_{m-1}, with the
+#   past     the column bits u_{m-4} u_{m-3} u_{m-2} u_{m-1}, with the
 #            newest bit u_{m-1} in bit 0;
 #   Q        the queue sigma_m sigma_{m+1} ..., a tuple of symbols 2u + b.
 # A symbol-level output of one queen placement is the integer
@@ -195,7 +195,7 @@ class LocalRule:
                     blocked |= 1 << r
         # Choose the lowest candidate free of all five attacks (Section 4.5):
         # R and A and the antidiagonal tests are in `blocked`, D is tested
-        # at w - r, and the upper-row bit is the low bit of Q[r].
+        # at w - r, and the row bit is the low bit of Q[r].
         chosen = next((r for r in range(w + 1)
                        if not (blocked >> r) & 1
                        and not (D >> (w - r)) & 1 and not Q[r] & 1), None)
