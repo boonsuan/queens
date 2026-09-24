@@ -52,6 +52,13 @@ make verify && make test                # its finite checks (about ten seconds)
 - **Section 7 (fast generation).** See
   [`fast_generator/README.md`](fast_generator/README.md).
 
+## License
+
+The code is released under the MIT License; see [LICENSE](LICENSE). The
+comparison program `fast_generator/knuth/knuth_packed.c` contains code taken
+from Donald Knuth's program `infty-queens`, which remains his; see
+[`fast_generator/README.md`](fast_generator/README.md#the-knuth-comparator).
+
 ## Notation used in the code
 
 The code uses the notation of the paper. A *symbol* of the queen word is

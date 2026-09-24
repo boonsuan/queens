@@ -283,7 +283,9 @@ from the output of CTANGLE, with two changes: the occupancy flags are stored
 as bits in 64-bit words, and counts and indices are 64-bit integers. The
 placement order and control flow are Knuth's. The surrounding program, which
 reads `--count N [--emit]`, prints zero-based rows and computes the checksum,
-is ours. `knuth/derive_knuth_packed.py` performs the derivation; with the
+is ours. The repository's MIT License covers our code; the code taken from
+`infty-queens` remains Knuth's. `knuth/derive_knuth_packed.py` performs the
+derivation; with the
 `ctangle` program installed, run
 
 ```sh
