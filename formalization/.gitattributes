@@ -1,6 +1,3 @@
-# Preserve the supplied reference snapshot, including its original line endings.
-queens-formalization-kit/** -text -whitespace linguist-vendored=true
-
 # Reproducible certificate outputs; keep handwritten proofs visible in reviews.
 Queens/Finite/Data.lean linguist-generated=true
 Queens/Finite/ReachabilityData.lean linguist-generated=true

@@ -18,7 +18,7 @@ import sys
 from lean_export import balanced_tree, indexed_checks, write_lean
 
 ROOT = Path(__file__).resolve().parents[1]
-REFERENCE = ROOT / "queens-formalization-kit" / "companion" / "verification"
+REFERENCE = ROOT.parent / "verification"
 sys.path.insert(0, str(REFERENCE))
 from calculation import encode  # noqa: E402
 from construct_history_graph import construct  # noqa: E402

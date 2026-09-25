@@ -17,7 +17,7 @@ import sys
 from lean_export import balanced_tree, write_lean
 
 ROOT = Path(__file__).resolve().parents[1]
-REFERENCE = ROOT / "queens-formalization-kit" / "companion" / "verification"
+REFERENCE = ROOT.parent / "verification"
 sys.path.insert(0, str(REFERENCE))
 from calculation import HistoryGraph, encode  # noqa: E402
 from verify_tuples import explore  # noqa: E402

@@ -21,8 +21,8 @@ There are no `sorry`s, custom axioms, or native-evaluation axioms.
 - **Check the formalization:** follow [Build and check](#build-and-check).
   [`Queens.lean`](Queens.lean) imports the complete formalized result set.
 - **Inspect the finite verification:** read the [verification design](docs/KERNEL_VERIFICATION.md)
-  and the [axiom audit](docs/AXIOMS.txt). The original manuscript and reference
-  programs are preserved in [`queens-formalization-kit/`](queens-formalization-kit/README.md).
+  and the [axiom audit](docs/AXIOMS.txt). The certificates are generated from the
+  reference programs in [`verification/`](../verification/) and [`oeis/`](../oeis/).
 
 ## The main theorem
 
@@ -113,7 +113,7 @@ an infinite constant tail.
 
 **Outside the formalized scope:** Section 7's fast-generation algorithm and
 Proposition 22, and the unnumbered return-word catalogues following Corollary 19.
-Result numbers refer to the [preserved manuscript](queens-formalization-kit/paper/queens.pdf).
+Result numbers refer to the [paper](https://boonsuan.github.io/queens.pdf).
 
 ## Paper-to-code correspondence
 
@@ -197,9 +197,10 @@ used about 9 GiB on its own. See the
 [build details](docs/KERNEL_VERIFICATION.md). Completed proofs are cached by Lake.
 After the first build, `lake build --wfail` is sufficient for incremental checks.
 
-The reference kit in this directory is the preserved snapshot used to generate
-the certificates. Keeping that snapshot makes regeneration independent of later
-changes to the Python and C programs elsewhere in the repository.
+The certificate exporters read the reference programs and the history graph
+from the repository's [`verification/`](../verification/) and [`oeis/`](../oeis/)
+folders. Continuous integration regenerates every certificate and checks that
+the result is unchanged.
 
 For interactive reading, open this directory in an editor with Lean 4 support.
 
@@ -282,10 +283,10 @@ python3 scripts/check_axioms.py
 The original Python verification programs can also be run independently:
 
 ```sh
-python3 queens-formalization-kit/companion/verification/verify_tuples.py
-python3 queens-formalization-kit/companion/verification/compare_verifiers.py
+python3 ../verification/verify_tuples.py
+python3 ../verification/compare_verifiers.py
 ```
 
-See the [companion-code guide](queens-formalization-kit/companion/README.md) for
+See the [companion-code guide](../README.md) for
 its reference calculations and examples. Those programs supply candidate data;
 the Lean checks establish the formal results.
