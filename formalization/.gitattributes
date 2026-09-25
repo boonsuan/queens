@@ -1,0 +1,22 @@
+# Preserve the supplied reference snapshot, including its original line endings.
+queens-formalization-kit/** -text -whitespace linguist-vendored=true
+
+# Reproducible certificate outputs; keep handwritten proofs visible in reviews.
+Queens/Finite/Data.lean linguist-generated=true
+Queens/Finite/ReachabilityData.lean linguist-generated=true
+Queens/Finite/CertificateChunks.lean linguist-generated=true
+Queens/Finite/ReachabilityChunks.lean linguist-generated=true
+Queens/Finite/SharpChunks.lean linguist-generated=true
+Queens/Finite/StateCounts.lean linguist-generated=true
+Queens/Finite/FortyData.lean linguist-generated=true
+Queens/Finite/FortyHistoryChecks.lean linguist-generated=true
+Queens/Finite/FortyStateChecksPart0.lean linguist-generated=true
+Queens/Finite/FortyStateChecksPart1.lean linguist-generated=true
+Queens/Finite/FortyStateChecksPart2.lean linguist-generated=true
+Queens/Finite/FortyStateChecksPart3.lean linguist-generated=true
+Queens/Finite/FortyStateChecks.lean linguist-generated=true
+Queens/Finite/RunWitnessData.lean linguist-generated=true
+Queens/Finite/RepeatedRunData.lean linguist-generated=true
+Queens/Finite/RepeatedRunChecks.lean linguist-generated=true
+docs/AXIOMS.txt linguist-generated=true
+docs/DECLARATIONS.md linguist-generated=true
