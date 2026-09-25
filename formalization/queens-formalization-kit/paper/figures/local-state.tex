@@ -1,0 +1,78 @@
+\begin{figure}[!b]
+\centering
+\setlength{\abovecaptionskip}{0pt}
+\begin{tikzpicture}[x=1cm,y=1cm,font=\footnotesize,>=stealth]
+ \node[anchor=west,font=\small] at (.2,4.8) {The board before column $41$};
+ \node[anchor=west,font=\small] at (6.5,4.8) {The lower attack records};
+ \begin{scope}[shift={(.75,1.15)},x=.51cm,y=.51cm]
+  \setboardfontsize{13pt}
+  \foreach \xx in {0,...,5} \foreach \yy in {0,...,6} {
+   \pgfmathtruncatemacro{\parity}{mod(\xx+\yy,2)}
+   \ifnum\parity=0 \fill[black!4] (\xx-.5,\yy-.5) rectangle (\xx+.5,\yy+.5);\fi
+  }
+  \fill[queensLower!13] (3.5,2.5) rectangle (4.5,5.5);
+  \draw[black!50] (4,-.5)--(4,6.5);
+  \draw[queensLower!55,densely dashed] (-.5,.5)--(5.4,6.4);
+  \draw[queensLower,thick] (0,0)--(4.45,4.45);
+  \draw[queensLower,thick] (2,1)--(4.45,3.45);
+  \draw[queensUpper,dashed] (-.5,4)--(4.5,4);
+  \node[text=queensLower,inner sep=0pt] at (0,0) {\BlackQueenOnWhite};
+  \node[text=queensLower,inner sep=0pt] at (2,1) {\BlackQueenOnWhite};
+  \foreach \yy in {3,4,5} \node[queensLower] at (4,\yy) {$\times$};
+  \node[anchor=east,text=queensLower] at (1.05,2.5) {$d=14$};
+  \node[anchor=west] at (4.6,3) {$m=25$};
+  \node[anchor=west] at (4.6,5) {$27$};
+  \draw[<->,black!65] (7.85,3)--(7.85,5);
+  \node[anchor=west] at (8.05,4) {$w=2$};
+  \foreach \xx/\lab in {0/37,2/39,4/41}
+   \node[anchor=north,text=black!65] at (\xx,-.7) {$\lab$};
+  \node[anchor=south,queensUpper,font=\scriptsize] at (1.2,4.08) {upper row $26$};
+ \end{scope}
+ \draw[->,black!45] (5.15,2.3)--(6.05,2.3);
+ \node[align=center,text=black!60,font=\scriptsize] at (5.6,1.77) {record\\offsets};
+ \foreach \yy/\letter/\recset in {4.05/R/\varnothing,2.75/D/{\{1,2\}},1.45/A/\varnothing} {
+  \node[anchor=west] at (6.5,\yy) {$\letter=\recset$};
+  \draw[->,black!35] (9.25,\yy)--(14.3,\yy);
+  \foreach \i in {0,...,4} {
+   \draw[black!40] ({9.6+.9*\i},\yy-.08)--({9.6+.9*\i},\yy+.08);
+   \node[anchor=south,font=\scriptsize,text=black!65] at ({9.6+.9*\i},\yy+.12) {$\i$};
+  }
+ }
+ \foreach \i in {1,2}
+  \filldraw[fill=queensLower!25,draw=queensLower] ({9.6+.9*\i-.16},2.59) rectangle ({9.6+.9*\i+.16},2.91);
+ \node[anchor=west,text=black!60,font=\scriptsize] at (6.5,3.62) {rows measured from $m=25$};
+ \node[anchor=west,text=black!60,font=\scriptsize] at (6.5,2.32) {magnitudes $15,16$, measured from $d=14$};
+ \node[anchor=west,text=black!60,font=\scriptsize] at (6.5,1.02) {antidiagonals measured from $n+m=66$};
+ \draw[black!15] (.2,.12)--(14.4,.12);
+ \node[anchor=west,font=\small] at (.2,-.3) {The upper-word records};
+ \node[anchor=west,font=\scriptsize,text=black!80] at (.2,-.72) {$z=n-m-U(m-1)=41-25-16=0$};
+ \node[anchor=east,text=black!60,font=\scriptsize] at (14.4,-.3) {filled cell $=1$; empty cell $=0$};
+ \begin{scope}[yshift=-.45cm]
+ % Columns 13,...,40; the symbol at 29 belongs to both Q and H_{\mathrm{out}}.
+ \foreach \s [count=\j from 0] in {2,1,2,2,2,3,0,0,3,2,2,3,0,1,2,1,2,1,2,2,0,3,2,3,0,3,0,3} {
+  \pgfmathtruncatemacro{\ub}{floor(\s/2)}
+  \pgfmathtruncatemacro{\bb}{mod(\s,2)}
+  \ifnum\ub=1 \def\ucolor{queensUpper!55}\else\def\ucolor{white}\fi
+  \ifnum\bb=1 \def\bcolor{queensUpper!55}\else\def\bcolor{white}\fi
+  \filldraw[fill=\ucolor,draw=black!25,line width=.25pt] ({2.7+.39*\j},-1.4) rectangle ({3.09+.39*\j},-1.04);
+  \filldraw[fill=\bcolor,draw=black!25,line width=.25pt] ({2.7+.39*\j},-1.9) rectangle ({3.09+.39*\j},-1.54);
+ }
+ \node[anchor=east] at (2.45,-1.22) {upper column $u_i$};
+ \node[anchor=east] at (2.45,-1.72) {upper row $b_i$};
+ \foreach \j/\lab in {0/13,12/25,16/29,27/40}
+  \node[anchor=north,text=black!60,font=\scriptsize] at ({2.895+.39*\j},-2.02) {$\lab$};
+ \draw[decorate,decoration={brace,amplitude=4pt},black!65] (8.94,-.86)--(13.62,-.86);
+ \node at (11.28,-.52) {$H_{\mathrm{out}}$};
+ \draw[decorate,decoration={brace,mirror,amplitude=4pt},black!65] (2.7,-2.48)--(7.38,-2.48);
+ \node at (5.04,-2.88) {$H_{\mathrm{in}}$};
+ \draw[decorate,decoration={brace,mirror,amplitude=4pt},black] (7.38,-2.48)--(9.33,-2.48);
+ \node[text=black] at (8.355,-2.88) {$Q$};
+ \draw[black!55] (7.38,-1)--(7.38,-1.94);
+ \draw[->,black!55] (13.95,-2.45)--(13.95,-1.9);
+ \node[anchor=north,text=black!65,font=\scriptsize] at (13.95,-2.52) {$n=41$};
+ \end{scope}
+\end{tikzpicture}
+\par\nointerlineskip
+\caption{The eight records $(w,z,R,D,A,H_{\mathrm{in}},Q,H_{\mathrm{out}})$ of the local state before column $41$.}
+\label{fig:state-portrait}
+\end{figure}

@@ -13,13 +13,8 @@ code, organised by the part of the paper it supports. Each folder has its
 own README with commands, expected output, and a map from files to sections
 of the paper.
 
-The [Lean 4 + mathlib formalization](formalization/README.md) proves Theorem 1,
-Corollaries 18–19, Lemma 20, and Proposition 21, including their finite
-certificates, using only kernel-checked proofs.
-
 | Folder | Paper | What it contains |
 |---|---|---|
-| [`formalization/`](formalization/) | Sections 2–6, Appendix A | Lean proofs, kernel-checked finite certificates, and a paper-to-code guide |
 | [`verification/`](verification/) | Sections 4–6, Appendix A | The local calculation, the history graph, and the exhaustive check behind the main theorem |
 | [`oeis/`](oeis/) | Section 6.5, Appendix A | The finite graphs and witnesses behind the consequences for related OEIS sequences |
 | [`fast_generator/`](fast_generator/) | Section 7, Appendix A | A C11 program that generates the sequence in linear time and logarithmic memory, with its measurements |
@@ -45,9 +40,6 @@ make verify && make test                # its finite checks (about ten seconds)
 
 ## Where to start, depending on what you have read
 
-- **Formal proofs in Lean.** See [`formalization/README.md`](formalization/README.md)
-  for the theorem statements, paper correspondence, and build instructions.
-  Run the Lean build commands from `formalization/`.
 - **Section 4 (the local state and the calculation).** Run `verification/trace.py`
   on a few columns and compare its output with the examples of Section 4.6.
   Then read `verification/calculation.py`, which follows Section 4.5 and

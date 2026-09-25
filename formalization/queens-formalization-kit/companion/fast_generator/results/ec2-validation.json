@@ -1,0 +1,432 @@
+{
+  "passed": true,
+  "counts": [
+    1000000,
+    10000000,
+    100000000,
+    1000000000,
+    10000000000
+  ],
+  "cpu": 2,
+  "warmup_runs": 10,
+  "timed_runs": 30,
+  "aggregate_cells": 10,
+  "checked_against_environment_record": true,
+  "signatures": {
+    "1000000": {
+      "last_column": 999999,
+      "last_queen": 1618033,
+      "hash": "a1eacbe1584dcd3c"
+    },
+    "10000000": {
+      "last_column": 9999999,
+      "last_queen": 16180339,
+      "hash": "e90ab7b7e59e99ad"
+    },
+    "100000000": {
+      "last_column": 99999999,
+      "last_queen": 161803397,
+      "hash": "ea78393604ed1025"
+    },
+    "1000000000": {
+      "last_column": 999999999,
+      "last_queen": 1618033987,
+      "hash": "264e17a4d3b5354d"
+    },
+    "10000000000": {
+      "last_column": 9999999999,
+      "last_queen": 16180339886,
+      "hash": "fa45508ddb884185"
+    }
+  },
+  "cells": [
+    {
+      "count": 1000000,
+      "program": "queens_fast",
+      "repetitions": 3,
+      "storage": {
+        "levels": 23,
+        "generator_bytes": 48,
+        "producer_record_bytes": 32,
+        "symbol_buffer_bytes": 2124,
+        "heap_bytes": 2876,
+        "static_data_bytes": 34925,
+        "algorithm_bytes": 37801
+      },
+      "wall_seconds": {
+        "median": 0.003017543,
+        "min": 0.003006495,
+        "max": 0.003022064
+      },
+      "generation_cpu_seconds": {
+        "median": 0.002632,
+        "min": 0.00262,
+        "max": 0.002637
+      },
+      "peak_working_set_bytes": {
+        "median": 1847296,
+        "min": 1744896,
+        "max": 1847296
+      },
+      "cpu_seconds": {
+        "median": 0.002949,
+        "min": 0.00294,
+        "max": 0.002958
+      },
+      "major_page_faults": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "count": 1000000,
+      "program": "knuth_packed",
+      "repetitions": 3,
+      "storage": {
+        "requested_array_bytes": 654520,
+        "algorithm_bytes": 654520
+      },
+      "wall_seconds": {
+        "median": 0.005307588,
+        "min": 0.005271787,
+        "max": 0.005309104
+      },
+      "generation_cpu_seconds": {
+        "median": 0.004897,
+        "min": 0.004871,
+        "max": 0.004901
+      },
+      "peak_working_set_bytes": {
+        "median": 2301952,
+        "min": 2301952,
+        "max": 2367488
+      },
+      "cpu_seconds": {
+        "median": 0.005241,
+        "min": 0.005206,
+        "max": 0.005243
+      },
+      "major_page_faults": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "count": 10000000,
+      "program": "queens_fast",
+      "repetitions": 3,
+      "storage": {
+        "levels": 27,
+        "generator_bytes": 48,
+        "producer_record_bytes": 32,
+        "symbol_buffer_bytes": 2140,
+        "heap_bytes": 3020,
+        "static_data_bytes": 34925,
+        "algorithm_bytes": 37945
+      },
+      "wall_seconds": {
+        "median": 0.026152179,
+        "min": 0.025842934,
+        "max": 0.026899679
+      },
+      "generation_cpu_seconds": {
+        "median": 0.025699,
+        "min": 0.025416,
+        "max": 0.026412
+      },
+      "peak_working_set_bytes": {
+        "median": 1748992,
+        "min": 1748992,
+        "max": 1847296
+      },
+      "cpu_seconds": {
+        "median": 0.02606,
+        "min": 0.025763,
+        "max": 0.026807
+      },
+      "major_page_faults": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "count": 10000000,
+      "program": "knuth_packed",
+      "repetitions": 3,
+      "storage": {
+        "requested_array_bytes": 6545096,
+        "algorithm_bytes": 6545096
+      },
+      "wall_seconds": {
+        "median": 0.049398375,
+        "min": 0.049082903,
+        "max": 0.049460405
+      },
+      "generation_cpu_seconds": {
+        "median": 0.04869,
+        "min": 0.0484,
+        "max": 0.04879
+      },
+      "peak_working_set_bytes": {
+        "median": 8200192,
+        "min": 8200192,
+        "max": 8265728
+      },
+      "cpu_seconds": {
+        "median": 0.049291,
+        "min": 0.04898,
+        "max": 0.049366
+      },
+      "major_page_faults": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "count": 100000000,
+      "program": "queens_fast",
+      "repetitions": 3,
+      "storage": {
+        "levels": 32,
+        "generator_bytes": 48,
+        "producer_record_bytes": 32,
+        "symbol_buffer_bytes": 2160,
+        "heap_bytes": 3200,
+        "static_data_bytes": 34925,
+        "algorithm_bytes": 38125
+      },
+      "wall_seconds": {
+        "median": 0.252747147,
+        "min": 0.252583762,
+        "max": 0.252866162
+      },
+      "generation_cpu_seconds": {
+        "median": 0.252239,
+        "min": 0.252055,
+        "max": 0.252332
+      },
+      "peak_working_set_bytes": {
+        "median": 1847296,
+        "min": 1748992,
+        "max": 1847296
+      },
+      "cpu_seconds": {
+        "median": 0.252639,
+        "min": 0.252442,
+        "max": 0.252726
+      },
+      "major_page_faults": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "count": 100000000,
+      "program": "knuth_packed",
+      "repetitions": 3,
+      "storage": {
+        "requested_array_bytes": 65450872,
+        "algorithm_bytes": 65450872
+      },
+      "wall_seconds": {
+        "median": 0.486462152,
+        "min": 0.485905098,
+        "max": 0.486668145
+      },
+      "generation_cpu_seconds": {
+        "median": 0.48326,
+        "min": 0.48289,
+        "max": 0.483618
+      },
+      "peak_working_set_bytes": {
+        "median": 67182592,
+        "min": 67182592,
+        "max": 67248128
+      },
+      "cpu_seconds": {
+        "median": 0.486236,
+        "min": 0.485718,
+        "max": 0.48652
+      },
+      "major_page_faults": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "count": 1000000000,
+      "program": "queens_fast",
+      "repetitions": 3,
+      "storage": {
+        "levels": 37,
+        "generator_bytes": 48,
+        "producer_record_bytes": 32,
+        "symbol_buffer_bytes": 2180,
+        "heap_bytes": 3380,
+        "static_data_bytes": 34925,
+        "algorithm_bytes": 38305
+      },
+      "wall_seconds": {
+        "median": 2.523760472,
+        "min": 2.523177503,
+        "max": 2.524843304
+      },
+      "generation_cpu_seconds": {
+        "median": 2.52231,
+        "min": 2.52212,
+        "max": 2.523587
+      },
+      "peak_working_set_bytes": {
+        "median": 1748992,
+        "min": 1748992,
+        "max": 1847296
+      },
+      "cpu_seconds": {
+        "median": 2.522763,
+        "min": 2.522584,
+        "max": 2.52405
+      },
+      "major_page_faults": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "count": 1000000000,
+      "program": "knuth_packed",
+      "repetitions": 3,
+      "storage": {
+        "requested_array_bytes": 654508520,
+        "algorithm_bytes": 654508520
+      },
+      "wall_seconds": {
+        "median": 4.861639469,
+        "min": 4.848201159,
+        "max": 4.864206721
+      },
+      "generation_cpu_seconds": {
+        "median": 4.833367,
+        "min": 4.823019,
+        "max": 4.83386
+      },
+      "peak_working_set_bytes": {
+        "median": 656285696,
+        "min": 656220160,
+        "max": 656285696
+      },
+      "cpu_seconds": {
+        "median": 4.861186,
+        "min": 4.847769,
+        "max": 4.86344
+      },
+      "major_page_faults": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "count": 10000000000,
+      "program": "queens_fast",
+      "repetitions": 3,
+      "storage": {
+        "levels": 42,
+        "generator_bytes": 48,
+        "producer_record_bytes": 32,
+        "symbol_buffer_bytes": 2200,
+        "heap_bytes": 3560,
+        "static_data_bytes": 34925,
+        "algorithm_bytes": 38485
+      },
+      "wall_seconds": {
+        "median": 25.412561467,
+        "min": 25.381131753,
+        "max": 25.413732981
+      },
+      "generation_cpu_seconds": {
+        "median": 25.402148,
+        "min": 25.369087,
+        "max": 25.40276
+      },
+      "peak_working_set_bytes": {
+        "median": 1847296,
+        "min": 1748992,
+        "max": 1847296
+      },
+      "cpu_seconds": {
+        "median": 25.402628,
+        "min": 25.369567,
+        "max": 25.40324
+      },
+      "major_page_faults": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      }
+    },
+    {
+      "count": 10000000000,
+      "program": "knuth_packed",
+      "repetitions": 3,
+      "storage": {
+        "requested_array_bytes": 6545084984,
+        "algorithm_bytes": 6545084984
+      },
+      "wall_seconds": {
+        "median": 49.039752556,
+        "min": 49.036815816,
+        "max": 49.154832462
+      },
+      "generation_cpu_seconds": {
+        "median": 48.580468,
+        "min": 48.533182,
+        "max": 48.627055
+      },
+      "peak_working_set_bytes": {
+        "median": 6546792448,
+        "min": 6546726912,
+        "max": 6546792448
+      },
+      "cpu_seconds": {
+        "median": 49.036551,
+        "min": 49.033777,
+        "max": 49.15142
+      },
+      "major_page_faults": {
+        "median": 0,
+        "min": 0,
+        "max": 0
+      }
+    }
+  ],
+  "speedup_ratios": [
+    {
+      "count": 1000000,
+      "packed_over_fast_wall_median": 1.7589104778291478
+    },
+    {
+      "count": 10000000,
+      "packed_over_fast_wall_median": 1.888881802162642
+    },
+    {
+      "count": 100000000,
+      "packed_over_fast_wall_median": 1.9246988849294508
+    },
+    {
+      "count": 1000000000,
+      "packed_over_fast_wall_median": 1.9263474180445124
+    },
+    {
+      "count": 10000000000,
+      "packed_over_fast_wall_median": 1.9297445721747324
+    }
+  ],
+  "warnings": []
+}

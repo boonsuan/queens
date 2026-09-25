@@ -1,0 +1,271 @@
+% !TeX root = ../queens.tex
+\section{From diagonal discrepancy to the golden ratio}\label{sec:contraction}
+We now combine the exact formula for the sorted lower rows (Lemma~\ref{lem:complement}) with a bound
+on the lower-diagonal magnitudes (Lemma~\ref{lem:estimates}). The argument has three steps. First,
+sorting converts the diagonal discrepancy bound $|d_j-j|\le4$ into an estimate for the lower
+columns. That estimate then gives a recurrence for the upper count
+$U(n)$. Finally, a contraction bounds the difference between $U(n)$ and
+$n/\phi$, yielding the two error bounds in Theorem~\ref{thm:main}.
+
+For complementary increasing sequences, Fraenkel and Peled
+\cite[Theorem~4.3]{FP} show that $b_n-a_n=\gamma n+O(1)$, with $\gamma>0$,
+implies bounded error from linear formulas for both sequences.
+Larsson and W\"astlund \cite[Lemma~2.3]{LW} extend this to a nonmonotone
+second sequence. Our upper columns and upper rows are not complementary
+($2$ occurs in both), so we instead use the sorted-row identity to
+obtain a contraction for $U$.
+
+The following bound is the heart of our result. Sections~\ref{sec:local}--\ref{sec:finite} are devoted to proving it.
+\begin{lemma}[Bounded diagonal discrepancy]\label{lem:estimates}
+For every $j\ge1$, the $j$th lower-diagonal magnitude $d_j=x_j^L-y_j^L$ satisfies
+\begin{equation}\label{eq:rank}
+ |d_j-j|\le4.
+\end{equation}
+\end{lemma}
+The remainder of this section shows how to deduce
+Theorem~\ref{thm:main} from Lemma~\ref{lem:estimates}.
+
+To interpret the diagonal discrepancy bound,
+consider the $j$th lower queen. Among the columns $1,\ldots,x_j^L$,
+exactly $j$ contain lower queens, so the other $x_j^L-j$ contain upper
+queens. Therefore $U(x_j^L)=x_j^L-j$. Since $d_j=x_j^L-y_j^L$, we obtain
+\begin{equation}\label{eq:rank-row}
+ y_j^L-U(x_j^L)=j-d_j;
+\end{equation}
+thus the diagonal bound implies $|y_j^L-U(x_j^L)|\le4$. 
+
+We next show
+that replacing the chronological lower row $y_j^L$ by the $j$th sorted
+lower row $v_j$ preserves the bound, giving $|v_j-U(x_j^L)|\le4$. This will let us
+substitute the exact formula $v_j=j+U(j-1)$ from
+Lemma~\ref{lem:complement}.
+
+We use a general nonnegative integer $C$ in place of $4$ to keep track of
+how the diagonal discrepancy bound affects the final constants. At the end we will take
+$C=4$.
+\begin{lemma}\label{lem:sorting}
+Let $C\in\N$. If $|d_j-j|\le C$ for every $j\ge1$, then
+$|v_j-U(x_j^L)|\le C$ for every $j\ge1$. Equivalently,
+\begin{equation}\label{eq:lower-column}
+ |x_j^L-2j-U(j-1)|\le C\qquad(j\ge1).
+\end{equation}
+\end{lemma}
+\begin{proof}
+Set $t_j=x_j^L-j=U(x_j^L)$. The sequence $t_j$ is nondecreasing since $x_j^L$ is increasing, and the hypothesis together with \eqref{eq:rank-row} gives
+\[
+ |y_j^L-t_j|\le C\qquad(j\ge1).
+\]
+Fix $j$. We first compare the $j$th sorted lower row $v_j$ with $t_j$.
+
+For each $i\le j$, monotonicity gives $t_i\le t_j$, and hence
+\[
+ y_i^L\le t_i+C\le t_j+C.
+\]
+There are therefore at least $j$ lower-row values at most $t_j+C$.
+Their $j$th smallest value must satisfy $v_j\le t_j+C$.
+
+For the other inequality, every $i\ge j$ satisfies
+\[
+ y_i^L\ge t_i-C\ge t_j-C.
+\]
+Thus only the first $j-1$ chronological rows can lie below $t_j-C$,
+and so the $j$th sorted row
+must satisfy $v_j\ge t_j-C$. Together the two inequalities give
+$|v_j-t_j|\le C$.
+
+We now use Lemma~\ref{lem:complement}: substituting $v_j=j+U(j-1)$ and
+$t_j=x_j^L-j$ gives
+\[
+ |x_j^L-2j-U(j-1)|=|t_j-v_j|\le C.\qedhere
+\]
+\end{proof}
+
+Lemma~\ref{lem:sorting} says that the $j$th lower column is within $C$ of
+$2j+U(j-1)$. To turn this into information about an arbitrary column
+$n$, we take $j=L(n)$, the number of lower queens placed through column
+$n$. When $j\ge1$, the column $n$ lies between two successive lower columns: $x_j^L\le n<x_{j+1}^L$.
+Applying the estimate of \eqref{eq:lower-column} at both endpoints will give a recurrence
+$U(n)=\frac{1}{2}(n+U(n-U(n))-\eta_n)$ with $|\eta_n|\le C+1$.
+\begin{lemma}[Counting recurrence]\label{lem:counting-recursion}
+Let $C\in\N$, and suppose
+$|x_j^L-2j-U(j-1)|\le C$ for every $j\ge1$. Then, with
+$L(n)=n-U(n)$,
+\begin{equation}\label{eq:integer-recursion}
+ \eta_n\coloneqq n-2U(n)+U(L(n)),\qquad |\eta_n|\le C+1\quad(n\ge0).
+\end{equation}
+\end{lemma}
+\begin{proof}
+Fix $n\ge1$, and let
+$j=L(n)=n-U(n)$. If $j\ge1$, exactly $j$ lower queens have been placed
+through column $n$, so
+\[
+ x_j^L\le n<x_{j+1}^L.
+\]
+The assumed estimate, applied to the $j$th and $(j+1)$st lower
+columns, bounds these two endpoints and gives
+\[
+ 2j+U(j-1)-C\le n<2j+2+U(j)+C.
+\]
+The count $U$ increases by at most one between consecutive columns, so
+$U(j-1)\ge U(j)-1$. Also, the strict upper bound can be decreased by one
+because all the quantities are integers. It follows that
+\[
+ 2j+U(j)-(C+1)\le n\le2j+U(j)+(C+1).
+\]
+Thus $|2j+U(j)-n|\le C+1$. Substituting $j=n-U(n)=L(n)$,
+the expression inside the absolute value becomes $\eta_n$.
+This proves the bound when $j\ge1$.
+
+If $j=0$, no lower queen has yet appeared, so $n<x_1^L$. The estimate
+\eqref{eq:lower-column} with index $1$, together with $U(0)=0$, gives
+$x_1^L\le C+2$. Hence $n\le C+1$. Since $L(n)=j=0$, we have $U(n)=n$, 
+so $\eta_n=-n$ and the same bound holds. At $n=0$ we have $\eta_0=0$.
+We have therefore established \eqref{eq:integer-recursion} for every
+$n\ge0$.
+\end{proof}
+
+Lemma~\ref{lem:counting-recursion} converts the lower-column estimate
+\eqref{eq:lower-column} into the relation~\eqref{eq:integer-recursion}
+between $U(n)$ and $U(n-U(n))$, with error at most $C+1$.
+We now use this relation to bound $|U(n)-n/\phi|$.
+
+\begin{proposition}[Contraction and queen positions]\label{prop:stability}
+Let $C\in\N$, and suppose $|d_j-j|\le C$ for every $j\ge1$. Then
+\begin{equation}\label{eq:Dbound}
+ |U(n)-\phi^{-1}n|<\phi^{-1}(C+1)\qquad(n\ge0).
+\end{equation}
+The upper and lower queen positions satisfy
+\[
+ \begin{aligned}
+ |q_n-n\phi|&<\phi^{-1}(C+1)&&\text{if }q_n>n,\\[3pt]
+ \Bigl|q_n-\frac{n}{\phi}\Bigr|&<C+\phi^{-1}(C+1)&&\text{if }q_n<n.
+ \end{aligned}
+\]
+\end{proposition}
+\begin{proof}
+Lemmas~\ref{lem:sorting} and~\ref{lem:counting-recursion} give
+\eqref{eq:integer-recursion}. We now use it to bound the count $U(n)$, 
+and then the queen positions $q_n$.
+
+To see why the golden ratio appears, consider a linear model
+$U(n)\approx\theta n$. Then $L(n)\approx(1-\theta)n$, and the left-hand
+side defining $\eta_n$ would have leading term
+\[
+ \bigl(1-2\theta+\theta(1-\theta)\bigr)n.
+\]
+For this expression to stay bounded, its coefficient must vanish:
+\[
+ 1-2\theta+\theta(1-\theta)=0,
+ \qquad\text{or equivalently}\qquad \theta^2+\theta=1.
+\]
+The positive solution is $\theta=\phi^{-1}$. We now bound the error
+without assuming such a model.
+
+Put
+\[
+ \varepsilon(n)=U(n)-\phi^{-1}n.
+\]
+Since $1-\phi^{-1}=\phi^{-2}$, we also have
+\[
+ L(n)=n-U(n)=\phi^{-2}n-\varepsilon(n).
+\]
+Substitute this expression and
+$U(L(n))=\phi^{-1}L(n)+\varepsilon(L(n))$ into
+\eqref{eq:integer-recursion}. The terms proportional to $n$ cancel,
+leaving
+\[
+ \eta_n=\varepsilon(L(n))-(2+\phi^{-1})\varepsilon(n).
+\]
+Because $2+\phi^{-1}=\phi^2$, we can solve for $\varepsilon(n)$:
+\begin{equation}\label{eq:contraction}
+ \varepsilon(n)=\phi^{-2}\varepsilon(L(n))-\phi^{-2}\eta_n.
+\end{equation}
+The factor $\phi^{-2}$ is less than one. Taking absolute values and using
+$|\eta_n|\le C+1$ gives
+\[
+ |\varepsilon(n)|\le\phi^{-2}|\varepsilon(L(n))|+\phi^{-2}(C+1).
+\]
+This bounds the error at $n$ by a smaller multiple of the error at
+$L(n)$, plus a fixed amount.
+
+For $n\ge1$, the upper queen $q_1=2$ ensures $U(n)\ge1$, so
+$0\le L(n)<n$. Repeatedly replacing the argument $n$ by its lower count $L(n)$
+therefore reaches $0$ after finitely many steps. If this takes $t$
+steps, repeated application of the last inequality, with $\varepsilon(0)=0$,
+yields
+\[
+ |\varepsilon(n)|\le(C+1)\sum_{\ell=1}^{t}\phi^{-2\ell}
+ <\frac{\phi^{-2}(C+1)}{1-\phi^{-2}}=\phi^{-1}(C+1).
+\]
+Since $\varepsilon(0)=0$, the bound also holds at $n=0$.
+This proves \eqref{eq:Dbound}.
+
+It remains to translate the count estimate into bounds on the queen
+positions. If column~$n$ contains an upper queen, its index among the
+upper queens is $U(n)$. Lemma~\ref{lem:upper} therefore gives
+$q_n=n+U(n)$, and hence
+\[
+ q_n-n\phi=U(n)-(\phi-1)n=\varepsilon(n).
+\]
+The upper error is consequently less than $\phi^{-1}(C+1)$.
+
+If column $n$ contains the $j$th lower queen, then $n=x_j^L$ and
+\eqref{eq:rank-row} gives $q_n-U(n)=j-d_j$. The diagonal discrepancy bound therefore
+implies $|q_n-U(n)|\le C$. Combining this with the count estimate gives
+\[
+ \Bigl|q_n-\frac{n}{\phi}\Bigr|
+ \le |q_n-U(n)|+|\varepsilon(n)|
+ <C+\phi^{-1}(C+1).\qedhere
+\]
+\end{proof}
+
+\begin{remark}[$1$-indexed coordinates]
+Under the hypotheses of Proposition~\ref{prop:stability}, changing to
+$1$-indexed coordinates gives a common error bound $1+C\phi$ for $C\ge1$.
+Indeed, the same queen has column $c=n+1$
+and row $s(c)=q_n+1$. Thus
+\[
+ \begin{aligned}
+ s(c)-c\phi&=(q_n-n\phi)-\phi^{-1},\\
+ s(c)-\frac{c}{\phi}&=\Bigl(q_n-\frac{n}{\phi}\Bigr)+\phi^{-2}.
+ \end{aligned}
+\]
+The $1$-indexed upper error is therefore less than $(C+2)\phi^{-1}$,
+and the $1$-indexed lower error is less than
+$C+\phi^{-1}(C+1)+\phi^{-2}$. For $C\ge1$, the latter is a common bound,
+since
+\[
+ (C+2)\phi^{-1}\le
+ C+\phi^{-1}(C+1)+\phi^{-2}=1+C\phi.
+\]
+Knuth \cite[answer 7.2.2.1--38]{Knuth4B} observed
+computationally that, for $1\le c\le10^9$,
+\[
+ s(c)\in
+ \Bigl[\frac{c}{\phi}-3\dts\frac{c}{\phi}+5\Bigr]
+ \cup[c\phi-2\dts c\phi+1].
+\]
+For comparison, translating Theorem~\ref{thm:main} to one-based
+coordinates and rounding gives, for every $c\ge1$,
+\[
+ s(c)\in
+ \Bigl[\frac{c}{\phi}-6.709\dts\frac{c}{\phi}+7.473\Bigr]
+ \cup[c\phi-3.709\dts c\phi+2.473].
+\]
+Using the algorithm of Section~\ref{sec:generation}, we extended the
+computational check of Knuth's ranges to $1\le c\le10^{11}$ and found
+no violations. The code and execution records are described in
+Appendix~\ref{app:stream-generation}.
+Section~\ref{sec:sharper} proves the upper halves of
+Knuth's ranges; whether the lower halves hold for every $c\ge1$
+remains open.
+\end{remark}
+
+\begin{proof}[Proof of Theorem~\ref{thm:main}]
+Lemma~\ref{lem:estimates} supplies the hypothesis of
+Proposition~\ref{prop:stability} with $C=4$. The proposition gives an
+upper error strictly less than $\phi^{-1}(4+1)=5/\phi$ and a lower error
+strictly less than $4+\phi^{-1}(4+1)=4+5/\phi$. These are exactly the two
+bounds asserted in Theorem~\ref{thm:main}.
+\end{proof}
+
