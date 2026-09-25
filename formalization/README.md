@@ -215,6 +215,19 @@ exceptions are the downstream copyright-header convention and documented line/fi
 length allowances for generated certificates. Evaluation budgets are scoped to
 the finite checks that need them.
 
+### Continuous integration
+
+The [Lean workflow](../.github/workflows/formalization.yml) runs on pull requests
+to `main` and pushes to `main` that change `formalization/**` or the workflow
+itself. Changes confined to the other companion programs do not trigger it.
+It can also be run manually from GitHub's Actions tab.
+
+CI builds the proofs with warnings treated as errors, runs the declaration
+linters and kernel-only axiom audit, checks the declaration documentation, and
+regenerates the certificates to verify that they match the committed files.
+It uses the pinned toolchain and dependencies, stages the large kernel checks,
+and caches successful builds for incremental checking.
+
 ## Finite verification and trust
 
 The history graph has **2,092 vertices and 2,603 labeled edges**. The candidate invariant
