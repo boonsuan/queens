@@ -1,0 +1,61 @@
+# Copyright (c) 2026 Boon Suan Ho
+# SPDX-License-Identifier: MIT
+
+# The Lean certificates are generated from the reference programs in verification/
+# and oeis/. This fast check, which needs Python only, regenerates them whenever
+# those programs or the formalization change and fails if anything differs. The
+# full Lean build (formalization.yml) runs only when the formalization changes.
+name: Lean certificates
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'verification/**'
+      - 'oeis/**'
+      - 'formalization/**'
+      - '.github/workflows/certificates.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'verification/**'
+      - 'oeis/**'
+      - 'formalization/**'
+      - '.github/workflows/certificates.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: certificates-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  reproduce:
+    name: Regenerate the certificates
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: formalization
+        shell: bash
+    steps:
+      - name: Check out the source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.13'
+
+      - name: Check certificate reproducibility
+        run: |
+          python3 scripts/export_finite_certificate.py
+          python3 scripts/export_kernel_checks.py
+          python3 scripts/export_forty_certificate.py
+          python3 scripts/export_run_witnesses.py
+          python3 scripts/export_run_lengths.py
+          git diff --exit-code -- Queens/Finite

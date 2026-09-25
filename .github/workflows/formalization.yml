@@ -87,15 +87,6 @@ jobs:
           subprocess.run(["lake", "exe", "cache", "get", *modules], check=True)
           PY
 
-      - name: Check certificate reproducibility
-        run: |
-          python3 scripts/export_finite_certificate.py
-          python3 scripts/export_kernel_checks.py
-          python3 scripts/export_forty_certificate.py
-          python3 scripts/export_run_witnesses.py
-          python3 scripts/export_run_lengths.py
-          git diff --exit-code -- Queens/Finite
-
       - name: Build all proofs with the Lean kernel
         # Public Ubuntu runners have 16 GiB RAM. Staging keeps the roughly 10 GiB
         # forty-symbol checks separate from the roughly 9 GiB repeated-run check.

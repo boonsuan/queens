@@ -218,16 +218,20 @@ the finite checks that need them.
 
 ### Continuous integration
 
-The [Lean workflow](../.github/workflows/formalization.yml) runs on pull requests
-to `main` and pushes to `main` that change `formalization/**` or the workflow
-itself. Changes confined to the other companion programs do not trigger it.
-It can also be run manually from GitHub's Actions tab.
+Two workflows run on pull requests to `main` and pushes to `main`; both can also
+be run manually from GitHub's Actions tab.
 
-CI builds the proofs with warnings treated as errors, runs the declaration
-linters and kernel-only axiom audit, checks the declaration documentation, and
-regenerates the certificates to verify that they match the committed files.
-It uses the pinned toolchain and dependencies, stages the large kernel checks,
-and caches successful builds for incremental checking.
+- The [certificate workflow](../.github/workflows/certificates.yml) regenerates
+  the certificates from the reference programs and checks that they match the
+  committed files. It needs only Python and takes about a minute, and it runs
+  whenever `verification/**`, `oeis/**` or `formalization/**` changes, so the
+  certificates cannot drift from the programs they come from.
+- The [Lean workflow](../.github/workflows/formalization.yml) builds the proofs
+  with warnings treated as errors, runs the declaration linters and kernel-only
+  axiom audit, and checks the declaration documentation. It runs only when
+  `formalization/**` changes. It uses the pinned toolchain and dependencies,
+  stages the large kernel checks, and caches successful builds for incremental
+  checking.
 
 ## Finite verification and trust
 
