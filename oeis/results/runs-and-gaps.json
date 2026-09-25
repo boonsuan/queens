@@ -1,0 +1,101 @@
+{
+  "forbidden gap factors": [
+    "11111",
+    "2222",
+    "33",
+    "44",
+    "3213"
+  ],
+  "column patterns": {
+    "11111": "111111",
+    "2222": "101010101",
+    "33": "1001001",
+    "44": "100010001",
+    "3213": "1001011001"
+  },
+  "12-symbol graphs": {
+    "gap graph vertices": 4247,
+    "gap graph edges": 5825,
+    "gap labels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "run graph vertices": 4247,
+    "run graph edges": 7985,
+    "run labels": [
+      1,
+      2,
+      3
+    ],
+    "maximal run lengths": {
+      "1": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "2": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "3": [
+        1
+      ]
+    }
+  },
+  "40-symbol graphs": {
+    "gap graph vertices": 18104,
+    "gap graph edges": 18878,
+    "gap labels": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "run graph vertices": 18104,
+    "run graph edges": 19983,
+    "run labels": [
+      1,
+      2,
+      3
+    ],
+    "maximal run lengths": {
+      "1": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        11
+      ],
+      "2": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6
+      ],
+      "3": [
+        1
+      ]
+    }
+  }
+}
