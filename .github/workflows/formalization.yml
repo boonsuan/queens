@@ -1,0 +1,113 @@
+# Copyright (c) 2026 Boon Suan Ho
+# SPDX-License-Identifier: MIT
+
+name: Lean formalization
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'formalization/**'
+      - '.github/workflows/formalization.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'formalization/**'
+      - '.github/workflows/formalization.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: lean-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Build, lint, and audit Lean
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    defaults:
+      run:
+        working-directory: formalization
+        shell: bash
+    env:
+      # Fetch only the imported mathlib modules in the explicit cache step below.
+      MATHLIB_NO_CACHE_ON_UPDATE: '1'
+    steps:
+      - name: Check out the source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.13'
+
+      - name: Set up the pinned Lean toolchain
+        uses: leanprover/lean-action@50fcf42d2e460296f1a34b402e990d1b24f8b596 # v1
+        with:
+          lake-package-directory: formalization
+          auto-config: false
+          build: false
+          test: false
+          lint: false
+          use-mathlib-cache: false
+          use-github-cache: false
+
+      # Save only after every check succeeds. Lake checks source hashes before
+      # reusing outputs from an earlier commit with the same pinned dependencies.
+      - name: Restore Lean build cache
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5
+        with:
+          path: formalization/.lake
+          key: queens-lake-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('formalization/lean-toolchain', 'formalization/lake-manifest.json') }}-${{ github.sha }}
+          restore-keys: |
+            queens-lake-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('formalization/lean-toolchain', 'formalization/lake-manifest.json') }}-
+
+      - name: Download imported mathlib dependencies
+        # Keep the cache within the runner's disk budget. The cache tool follows
+        # transitive mathlib imports; it does not follow imports of Queens modules.
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          import subprocess
+
+          sources = [Path("Queens.lean"), Path("AxiomAudit.lean"), *Path("Queens").rglob("*.lean")]
+          modules = sorted({
+              module
+              for source in sources
+              for module in re.findall(r"^import (Mathlib(?:\.\w+)*)", source.read_text(), re.MULTILINE)
+          })
+          if not modules:
+              raise SystemExit("No mathlib imports found")
+          subprocess.run(["lake", "exe", "cache", "get", *modules], check=True)
+          PY
+
+      - name: Check certificate reproducibility
+        run: |
+          python3 scripts/export_finite_certificate.py
+          python3 scripts/export_kernel_checks.py
+          python3 scripts/export_forty_certificate.py
+          python3 scripts/export_run_witnesses.py
+          python3 scripts/export_run_lengths.py
+          git diff --exit-code -- Queens/Finite
+
+      - name: Build all proofs with the Lean kernel
+        # Public Ubuntu runners have 16 GiB RAM. Staging keeps the roughly 10 GiB
+        # forty-symbol checks separate from the roughly 9 GiB repeated-run check.
+        run: |
+          python3 scripts/build_kernel.py --parallel-forty
+          lake build --wfail
+
+      - name: Lint Lean declarations
+        run: lake lint -- --no-build
+
+      - name: Audit axioms and declaration documentation
+        run: |
+          python3 scripts/check_axioms.py
+          python3 scripts/declaration_index.py
+          git diff --exit-code -- docs/AXIOMS.txt docs/DECLARATIONS.md
