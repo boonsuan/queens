@@ -29,6 +29,7 @@ python verify_bitmasks.py        # the same check, implemented independently
 python compare_verifiers.py      # the two state graphs are identical
 python check_correspondence.py   # the calculation matches 3000 actual queens
 python test_rejection.py         # a graph with one edge removed is rejected
+python sharper_constants.py      # the facts behind the sharper constants of Section 6.6
 ```
 
 Each takes a few seconds. The first two print
@@ -101,6 +102,7 @@ Outputs are written to `results/`.
 | `check_correspondence.py` | §5, App. A | Runs that branch on columns 30–2999 |
 | `trace.py` | §4.6 | Prints the actual steps column by column |
 | `test_rejection.py` | App. A | Both verifiers reject a damaged graph |
+| `sharper_constants.py` | §6.6 | Checks the facts used for the sharper constants, in exact arithmetic |
 | `construct_history_graph.py` | §6.2 | Builds the history graph |
 | `history_length_experiment.py` | §6.2 | Repeats the construction with lengths 4–14 |
 
