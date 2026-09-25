@@ -8,7 +8,7 @@ from pathlib import Path
 import sys
 
 ROOT = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT / "queens-formalization-kit/companion/oeis"))
+sys.path.insert(0, str(ROOT.parent / "oeis"))
 import graphs
 from export_forty_certificate import build_data
 from lean_export import balanced_tree, indexed_checks, write_lean

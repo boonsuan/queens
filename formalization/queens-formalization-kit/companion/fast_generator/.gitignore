@@ -1,7 +1,0 @@
-# Build products
-/build/
-__pycache__/
-*.py[cod]
-
-# New benchmark and scan runs (the default output names of bench/)
-/results/new-*
