@@ -1,0 +1,2 @@
+# Build products and the generated headers (make recreates them)
+/build/

@@ -23,6 +23,7 @@ certificates, using only kernel-checked proofs.
 | [`verification/`](verification/) | Sections 4–6, Appendix A | The local calculation, the history graph, and the exhaustive check behind the main theorem |
 | [`oeis/`](oeis/) | Section 6.5, Appendix A | The finite graphs and witnesses behind the consequences for related OEIS sequences |
 | [`fast_generator/`](fast_generator/) | Section 7, Appendix A | A C11 program that generates the sequence in linear time and logarithmic memory, with its measurements |
+| [`spire/`](spire/) | Beyond the paper | The Section 7 calculation reorganized for a modern processor: 10<sup>10</sup> rows in 0.04 s on eight cores, in logarithmic memory |
 
 ## Quick start
 
@@ -58,7 +59,9 @@ make verify && make test                # its finite checks (about ten seconds)
   independently.
 - **Section 6.5 (OEIS consequences).** See [`oeis/README.md`](oeis/README.md).
 - **Section 7 (fast generation).** See
-  [`fast_generator/README.md`](fast_generator/README.md).
+  [`fast_generator/README.md`](fast_generator/README.md). For how far the same
+  calculation can be pushed on a modern processor, see
+  [`spire/README.md`](spire/README.md), which is not part of the paper.
 
 ## License
 

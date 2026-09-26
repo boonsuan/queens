@@ -1,0 +1,60 @@
+# Copyright (c) 2026 Boon Suan Ho
+# SPDX-License-Identifier: MIT
+
+# Spire is checked against the Section 7 generator: this builds both from a clean checkout
+# and compares Spire's checksums with ones computed from the generator's rows (spire/check.py,
+# about a minute in all). It runs whenever either program changes.
+name: Spire
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'spire/**'
+      - 'fast_generator/**'
+      - '.github/workflows/spire.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'spire/**'
+      - 'fast_generator/**'
+      - '.github/workflows/spire.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: spire-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Build Spire and compare it with the Section 7 generator
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: spire
+        shell: bash
+    steps:
+      - name: Check out the source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.13'
+
+      - name: Show the processor (Spire needs AVX2 and BMI2)
+        run: |
+          grep -m1 'model name' /proc/cpuinfo
+          grep -qw avx2 /proc/cpuinfo && grep -qw bmi2 /proc/cpuinfo
+
+      - name: Build
+        run: make
+
+      - name: Compare with the Section 7 generator
+        run: make check
