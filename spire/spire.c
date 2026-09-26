@@ -55,7 +55,12 @@
 #else
 #define SPIRE_X86 0
 #endif
-/* Rows are written with AVX2 wherever it is available, and with NEON on ARM64. */
+/* Rows are written with AVX-512 or AVX2 wherever available, and with NEON on ARM64. */
+#if defined(__AVX512F__) && defined(__AVX512BW__) && defined(__AVX512VL__)
+#define ROWS_AVX512 1
+#else
+#define ROWS_AVX512 0
+#endif
 #if defined(__AVX2__)
 #define ROWS_AVX2 1
 #include <immintrin.h>
@@ -852,12 +857,23 @@ typedef struct {
 #define ROW_BUFFER 1024u
 static inline void emit(Run *r, uint64_t y) { r->H = r->H * P + (P - 1) * y; r->last = y; r->count++; r->sum1 += y; }
 
-/* Sum the written rows, four at a time (eight on ARM64, into four independent sums); up to
- * three stay at the front. */
+/* Sum the written rows, four at a time (eight with AVX-512 or on ARM64, into independent
+ * sums); up to three stay at the front. */
 static inline void sum_rows(Run *r)
 {
     unsigned n = r->n, i = 0;
-#if ROWS_AVX2
+#if ROWS_AVX512
+    __m512i s0 = _mm512_setzero_si512(), s1 = s0;
+    for (; i + 16 <= n; i += 16) {
+        s0 = _mm512_add_epi64(s0, _mm512_loadu_si512(r->rows + i));
+        s1 = _mm512_add_epi64(s1, _mm512_loadu_si512(r->rows + i + 8));
+    }
+    __m512i s8 = _mm512_add_epi64(s0, s1);
+    __m256i s = _mm256_add_epi64(_mm512_castsi512_si256(s8), _mm512_extracti64x4_epi64(s8, 1));
+    s = _mm256_add_epi64(s, _mm256_loadu_si256((const __m256i *)r->sum));
+    for (; i + 4 <= n; i += 4) s = _mm256_add_epi64(s, _mm256_loadu_si256((const __m256i *)(r->rows + i)));
+    _mm256_storeu_si256((__m256i *)r->sum, s);
+#elif ROWS_AVX2
     __m256i s = _mm256_loadu_si256((const __m256i *)r->sum);
     for (; i + 16 <= n; i += 16) {
         __m256i a = _mm256_add_epi64(_mm256_loadu_si256((const __m256i *)(r->rows + i)), _mm256_loadu_si256((const __m256i *)(r->rows + i + 4)));
@@ -883,19 +899,28 @@ static inline void sum_rows(Run *r)
     r->n = n & 3;
 }
 /* Write the rows of a step's blocks, from m and n + U before it: row = (upper ? nu : m) +
- * offset. With AVX2, four rows per instruction (the code's sign bit is the upper bit, so a
- * sign-extended code selects nu with a byte blend and gives the offset with a mask); with NEON,
- * two, from the widened codes. */
+ * offset. With AVX-512, eight rows per instruction (the codes' sign bits, the upper bits, become
+ * a mask register that selects nu); with AVX2, four (a sign-extended code selects nu with a byte
+ * blend and gives the offset with a mask); with NEON, two, from the widened codes. */
 static inline void write_rows(Run *r, const uint16_t *slots, unsigned nblocks, uint64_t m, uint64_t nu)
 {
-#if ROWS_AVX2
+#if ROWS_AVX512
+    const __m128i low7 = _mm_set1_epi8(127);
+#elif ROWS_AVX2
     const __m256i low7 = _mm256_set1_epi64x(127);
 #endif
     uint64_t *buf = r->rows;
     unsigned n = r->n;
     for (unsigned j = 0; j < nblocks; ++j) {
         const BaseRows *b = &base_rows[slots[j]];
-#if ROWS_AVX2
+#if ROWS_AVX512
+        __m128i code = _mm_loadu_si128((const __m128i *)b->code), offset = _mm_and_si128(code, low7);
+        __mmask16 upper = _mm_movepi8_mask(code);  /* bits 12 to 15 (len, dm, ...) are not used */
+        __m512i mv = _mm512_set1_epi64((long long)m), nv = _mm512_set1_epi64((long long)nu);
+        _mm512_storeu_si512(buf + n, _mm512_add_epi64(_mm512_mask_blend_epi64((__mmask8)upper, mv, nv), _mm512_cvtepu8_epi64(offset)));
+        _mm256_storeu_si256((__m256i *)(buf + n + 8), _mm256_add_epi64(_mm256_mask_blend_epi64((__mmask8)(upper >> 8), _mm512_castsi512_si256(mv), _mm512_castsi512_si256(nv)),
+                                                                        _mm256_cvtepu8_epi64(_mm_srli_si128(offset, 8))));
+#elif ROWS_AVX2
         const __m256i mv = _mm256_set1_epi64x((long long)m), nv = _mm256_set1_epi64x((long long)nu);
         for (unsigned g = 0; g < 3; ++g) {
             int32_t four; memcpy(&four, b->code + 4 * g, 4);

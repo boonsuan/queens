@@ -4,7 +4,8 @@ Spire generates the greedy queen rows q<sub>0</sub>, q<sub>1</sub>, q<sub>2</sub
 faster than the generator of Section 7, by reorganizing the same calculation for a modern
 processor. It is exact, it uses every core, and like the Section 7 generator it needs only
 logarithmic memory. On an 8-core desktop it makes the first 10<sup>10</sup> rows in 0.04
-seconds; writing every one of them to memory as a 64-bit number takes 0.57 seconds.
+seconds; writing every one of them to memory as a 64-bit number takes 0.57 seconds. On a
+16-core AMD Zen 5 server it makes the first 10<sup>12</sup> rows in under a second.
 
 Spire is not described in the paper. It builds on Section 7 (the chain of copies, the paused
 records and the four-symbol table), using the tables of [`../fast_generator`](../fast_generator/)
@@ -22,7 +23,8 @@ It needs a 64-bit processor, a C compiler with OpenMP and Python 3:
 
 On x86-64 with AVX2 and BMI2 (Intel since 2013, AMD since 2015), under Linux or Windows, the
 inner loops are in assembly (`loops.S`). Everywhere else, and with `make PORTABLE=1`, they are
-the same loops in C (`loops.c`).
+the same loops in C (`loops.c`). `spire-rows` writes the rows with AVX-512 on processors that
+have it (Intel Xeon since 2017, AMD since Zen 4), otherwise with AVX2 or, on ARM64, NEON.
 
 ```sh
 make                              # build/spire and build/spire-rows (a few seconds)
@@ -58,6 +60,22 @@ take a few dozen kilobytes (logarithmic in N), and the tables about a megabyte. 
 `2453193a2e8aae58` and `74986f235efafcda`. Under Linux (tested under WSL 1, which emulates it)
 the results are the same and the times somewhat longer. On this processor the C loops
 (`make PORTABLE=1`) take 0.050 s at 10<sup>10</sup>, and 0.60 s writing the rows.
+
+AWS `c8a.4xlarge` (AMD EPYC 9R45, Zen 5, 16 cores), Ubuntu 24.04, GCC 13.3, assembly loops,
+rows written with AVX-512, all threads, setup included:
+
+| N | `spire` | `spire-rows` |
+|---|---|---|
+| 10<sup>9</sup> | 0.017 s | 0.035 s |
+| 10<sup>10</sup> | 0.020 s | 0.24 s |
+| 10<sup>11</sup> | 0.10 s | 2.2 s |
+| 10<sup>12</sup> | 0.96 s | 23 s |
+
+Writing the rows with AVX-512 rather than AVX2 saves 7 to 13% here (`spire-rows` takes 26 s at
+10<sup>12</sup> with AVX2), and 20% on an Intel Xeon 6975P-C (`c8i.4xlarge`, 8 cores with 2
+threads each: 0.50 s rather than 0.62 s at 10<sup>10</sup>). On AMD Zen 4 (`c7a.4xlarge`, 16
+cores: 0.32 s at 10<sup>10</sup>), which carries out each 512-bit instruction in two halves, it
+makes no difference.
 
 AWS Graviton4 (Neoverse V2, 16 cores, `c8g.4xlarge`), Ubuntu 24.04, GCC 13.3, C loops, all
 threads, setup included:
@@ -191,8 +209,8 @@ cache. Taller towers than eight would need a wider row counter (a step of nine c
 faster with two threads per core, which share one multiplier.
 
 The assembly is worth about a fifth of `spire`'s time on x86-64 (0.040 s against 0.050 s at
-10<sup>10</sup>). `spire-rows` writes its rows with AVX2 on x86-64 processors that have it,
-and with NEON on ARM64.
+10<sup>10</sup>). `spire-rows` writes its rows with AVX-512 or AVX2 on x86-64 processors that
+have them, and with NEON on ARM64.
 
 ## Files
 
