@@ -1,7 +1,7 @@
 /* Spire: the greedy queens, 10^10 rows in 0.04 seconds.
  *
- * Spire computes the rows y_0, y_1, ... of the greedy queen sequence (the paper, Section 7)
- * and folds them into the polynomial checksum H = sum_n y_n P^(N-1-n) mod 2^64. Compiled with
+ * Spire computes the rows q_0, q_1, ... of the greedy queen sequence (the paper, Section 7)
+ * and folds them into the polynomial checksum H = sum_n q_n P^(N-1-n) mod 2^64. Compiled with
  * ROWS=1 (spire-rows.c) it also writes every row to memory as a 64-bit number and sums them.
  * It uses logarithmic memory per thread, like the paper's generator, and all the threads of the
  * machine.
@@ -37,15 +37,34 @@
  *    hash (after H <- H P^L, L its number of rows), with A, B, C fixed per slot. With
  *    F = (P - 1) H + m this is two multiplications a step, however many rows the step makes.
  *
- * 6. The machine sets the limits. The inner loops (loops.S, in assembly) run four chains of
- *    lookups side by side to hide the cache's latency, keep every chain's state in a register,
- *    and do each step's work in a second loop that does not wait for the chains.
+ * 6. The machine sets the limits. The inner loops run four chains of lookups side by side to
+ *    hide the cache's latency, keep every chain's state in a register, and do each step's work
+ *    in a second loop that does not wait for the chains. On x86-64 with AVX2 and BMI2 they are
+ *    in assembly (loops.S) and the tables sit at fixed addresses (layout.h); on any other
+ *    64-bit processor, such as ARM64 (Apple Silicon, Graviton), they are in C (loops.c).
  *
  * Usage:  spire N [threads] [ranges]
  *
- * The program is for x86-64 processors with AVX2 and BMI2 (2013 on), under Linux or Windows.
+ * It builds under Linux, macOS and Windows (MSYS2), with GCC or clang and OpenMP.
  */
+/* x86-64 with AVX2 and BMI2, under Linux or Windows, uses the assembly loops and fixed table
+ * addresses; anything else (including macOS, which reserves the lowest 4 GB of every process,
+ * or -DSPIRE_PORTABLE) the C loops and ordinary allocations. */
+#if defined(__x86_64__) && defined(__AVX2__) && defined(__BMI2__) && !defined(__APPLE__) && !defined(SPIRE_PORTABLE)
+#define SPIRE_X86 1
+#else
+#define SPIRE_X86 0
+#endif
+/* Rows are written with AVX2 wherever it is available, and with NEON on ARM64. */
+#if defined(__AVX2__)
+#define ROWS_AVX2 1
 #include <immintrin.h>
+#else
+#define ROWS_AVX2 0
+#if defined(__aarch64__)
+#include <arm_neon.h>
+#endif
+#endif
 #include <omp.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -54,6 +73,7 @@
 #ifdef _WIN32
 #include <windows.h>
 #include <psapi.h>
+#include <malloc.h>
 #else
 #include <sys/mman.h>
 #include <sys/resource.h>
@@ -301,7 +321,7 @@ static TopStep top_step(const Blocks *bl)
 #define MAP_SIZE 65536
 typedef struct {
     unsigned height;
-    uint32_t *chain;                 /* PAIR_CHAIN or TOP_CHAIN */
+    uint32_t *chain;                 /* PAIR_CHAINS or TOP_CHAINS */
     Key key[MAX_STATES];             /* state -> key */
     uint32_t row[MAX_STATES];        /* state -> row (UINT32_MAX until known) */
     Key map_key[MAP_SIZE];           /* key -> state, open addressing */
@@ -316,13 +336,34 @@ static uint64_t slow_steps;
 static uint16_t *top_block_lists;    /* rows only: each top slot's copy-0 steps */
 typedef struct { int8_t code[12]; uint8_t len, dm, dnu, pad; } BaseRows;  /* rows only */
 static BaseRows base_rows[QF_SLOT_COUNT] __attribute__((aligned(64)));
-#define BYTE_CODES ((const uint32_t *)BYTE_CODE)
-#define POWERS ((const uint64_t *)POWER_OF_P)
-#define PAIR_CHAINS ((const uint32_t *)PAIR_CHAIN)
-#define TOP_CHAINS ((const uint32_t *)TOP_CHAIN)
-#define PAIR_SYMBOLS ((const uint64_t *)PAIR_SYMS)
-#define TOP_STEPS ((const TopStep *)TOP_STEP)
-#define TOP_BLOCK_REFS ((const uint64_t *)TOP_BLOCKS)
+#if defined(__aarch64__)
+/* Rows only, on ARM64: the codes widened for NEON, row = (upper ? nu : m) + offset, so that two
+ * rows take a select and an add. */
+typedef struct { int64_t offset[12]; uint64_t upper[12]; } WideRows;
+static WideRows wide_rows[QF_SLOT_COUNT] __attribute__((aligned(64)));
+#endif
+/* The tables: at the fixed addresses of layout.h on x86-64 (so that the assembly can name
+ * them), otherwise wherever they were allocated. */
+static uint32_t *byte_code_table, *pair_chain_table, *top_chain_table;
+static uint64_t *power_table, *pair_symbol_table, *top_block_ref_table;
+static TopStep *top_step_table;
+#if SPIRE_X86
+#define BYTE_CODES ((uint32_t *)BYTE_CODE)
+#define POWERS ((uint64_t *)POWER_OF_P)
+#define PAIR_CHAINS ((uint32_t *)PAIR_CHAIN)
+#define TOP_CHAINS ((uint32_t *)TOP_CHAIN)
+#define PAIR_SYMBOLS ((uint64_t *)PAIR_SYMS)
+#define TOP_STEPS ((TopStep *)TOP_STEP)
+#define TOP_BLOCK_REFS ((uint64_t *)TOP_BLOCKS)
+#else
+#define BYTE_CODES byte_code_table
+#define POWERS power_table
+#define PAIR_CHAINS pair_chain_table
+#define TOP_CHAINS top_chain_table
+#define PAIR_SYMBOLS pair_symbol_table
+#define TOP_STEPS top_step_table
+#define TOP_BLOCK_REFS top_block_ref_table
+#endif
 
 static uint32_t state_of_key(Machine *M, Key k)
 {
@@ -340,9 +381,11 @@ static uint32_t row_of_state(Machine *M, uint32_t s)
     return M->row[s];
 }
 static uint32_t state_of_row(const Machine *M, uint64_t row) { return row < M->nslots ? M->state_at[row] : (uint32_t)(row - M->nslots); }
-/* Memory at a fixed address (the operating system places it there if the range is free). */
+/* Zeroed memory for a table: at a fixed address on x86-64 (the operating system places it
+ * there if the range is free), anywhere otherwise. */
 static void *reserve_at(uint64_t where, size_t bytes)
 {
+#if SPIRE_X86
 #ifdef _WIN32
     void *a = VirtualAlloc((void *)(uintptr_t)where, bytes, MEM_RESERVE | MEM_COMMIT, PAGE_READWRITE);
 #else
@@ -350,6 +393,32 @@ static void *reserve_at(uint64_t where, size_t bytes)
 #endif
     if (a != (void *)(uintptr_t)where) die("cannot reserve the table at address", where);
     return a;
+#else
+    (void)where;
+    void *p = calloc(1, bytes);
+    if (!p) die("out of memory for a table of bytes:", bytes);
+    return p;
+#endif
+}
+/* 64-byte aligned buffers. */
+static void *aligned_alloc64(size_t bytes)
+{
+    void *p;
+#ifdef _WIN32
+    p = _aligned_malloc(bytes, 64);
+#else
+    if (posix_memalign(&p, 64, bytes)) p = NULL;
+#endif
+    if (!p) die("out of memory for a buffer of bytes:", bytes);
+    return p;
+}
+static void aligned_free64(void *p)
+{
+#ifdef _WIN32
+    _aligned_free(p);
+#else
+    free(p);
+#endif
 }
 /* The most physical memory the process has held, in bytes. */
 static double peak_memory(void)
@@ -359,7 +428,12 @@ static double peak_memory(void)
     return GetProcessMemoryInfo(GetCurrentProcess(), &c, sizeof c) ? (double)c.PeakWorkingSetSize : 0;
 #else
     struct rusage u;
-    return getrusage(RUSAGE_SELF, &u) ? 0 : 1024.0 * (double)u.ru_maxrss;
+    if (getrusage(RUSAGE_SELF, &u)) return 0;
+#ifdef __APPLE__
+    return (double)u.ru_maxrss;           /* bytes on macOS */
+#else
+    return 1024.0 * (double)u.ru_maxrss;  /* kilobytes on Linux */
+#endif
 #endif
 }
 
@@ -397,11 +471,11 @@ static void build_machine(Machine *M, unsigned height, uint32_t *chain, size_t n
         uint32_t from = state_of_key(M, (Key)trans[k].hi << 64 | trans[k].lo), to = state_of_key(M, c[k].next);
         size_t x = M->row[from] + BYTE_CODES[trans[k].x];
         chain[x] = M->row[from] | row_of_state(M, to) << 16;
-        if (height == PAIR_HEIGHT) ((uint64_t *)PAIR_SYMS)[x] = c[k].syms;
+        if (height == PAIR_HEIGHT) PAIR_SYMBOLS[x] = c[k].syms;
         else {
-            ((TopStep *)TOP_STEP)[x] = c[k].step;
+            TOP_STEPS[x] = c[k].step;
             if (ROWS) {
-                ((uint64_t *)TOP_BLOCKS)[x] = pool | (uint64_t)c[k].blocks->n << 32;
+                TOP_BLOCK_REFS[x] = pool | (uint64_t)c[k].blocks->n << 32;
                 memcpy(top_block_lists + pool, c[k].blocks->slot, 2 * c[k].blocks->n);
                 pool += c[k].blocks->n; free(c[k].blocks);
             }
@@ -445,18 +519,25 @@ static void build_tables(void)
 {
     widen_entries();
     number_classes();
-    uint32_t *codes = (uint32_t *)reserve_at(BYTE_CODE, 0x100000 + 65536 * 8);
-    uint64_t *powers = (uint64_t *)(uintptr_t)POWER_OF_P;
+    size_t room = 65536;  /* slots: rows are 16-bit numbers */
+    byte_code_table = (uint32_t *)reserve_at(BYTE_CODE, 256 * 4);
+    power_table = (uint64_t *)reserve_at(POWER_OF_P, 65536 * 8);
+    pair_chain_table = (uint32_t *)reserve_at(PAIR_CHAIN, room * 4);
+    top_chain_table = (uint32_t *)reserve_at(TOP_CHAIN, room * 4);
+    pair_symbol_table = (uint64_t *)reserve_at(PAIR_SYMS, room * 8);
+    top_step_table = (TopStep *)reserve_at(TOP_STEP, room * 32);
+    uint32_t *codes = BYTE_CODES;
+    uint64_t *powers = POWERS;
     for (unsigned L = 0; L < 65536; ++L) powers[L] = L ? powers[L - 1] * P : 1;
-    size_t room = 65536;
-    reserve_at(PAIR_CHAIN, room * 4); reserve_at(TOP_CHAIN, room * 4);
-    reserve_at(PAIR_SYMS, room * 8); reserve_at(TOP_STEP, room * 32);
     if (ROWS) {
-        reserve_at(TOP_BLOCKS, room * 8);
+        top_block_ref_table = (uint64_t *)reserve_at(TOP_BLOCKS, room * 8);
         for (unsigned i = 0; i < QF_SLOT_COUNT; ++i) {
             uint64_t e = entry[i];
             if (!LEN(e)) continue;
             for (unsigned j = 0; j < LEN(e); ++j) base_rows[i].code[j] = (int8_t)CODES(e)[j];
+#if defined(__aarch64__)
+            for (unsigned j = 0; j < LEN(e); ++j) { wide_rows[i].offset[j] = CODES(e)[j] & 127; wide_rows[i].upper[j] = -(uint64_t)(CODES(e)[j] >> 7); }
+#endif
             base_rows[i].len = (uint8_t)LEN(e); base_rows[i].dm = (uint8_t)DM(e); base_rows[i].dnu = (uint8_t)(LEN(e) + DU(e));
         }
     }
@@ -466,8 +547,8 @@ static void build_tables(void)
         for (unsigned i = 0; i < LEN(entry[bl->slot[j]]); ++i) pair_seed_output[pair_seed_length++] = (uint8_t)symbol(SYMS(entry[bl->slot[j]]), i);
 #if HAVE_PLAN
     for (unsigned b = 0; b < 256; ++b) codes[b] = plan_byte_code[b];
-    build_machine(&pairs, PAIR_HEIGHT, (uint32_t *)(uintptr_t)PAIR_CHAIN, PLAN_PAIR_SLOTS, plan_pair_rows, PLAN_PAIR_ROWS, plan_pair_trans, PLAN_PAIR_TRANS);
-    build_machine(&top, TOP_HEIGHT, (uint32_t *)(uintptr_t)TOP_CHAIN, PLAN_TOP_SLOTS, plan_top_rows, PLAN_TOP_ROWS, plan_top_trans, PLAN_TOP_TRANS);
+    build_machine(&pairs, PAIR_HEIGHT, PAIR_CHAINS, PLAN_PAIR_SLOTS, plan_pair_rows, PLAN_PAIR_ROWS, plan_pair_trans, PLAN_PAIR_TRANS);
+    build_machine(&top, TOP_HEIGHT, TOP_CHAINS, PLAN_TOP_SLOTS, plan_top_rows, PLAN_TOP_ROWS, plan_top_trans, PLAN_TOP_TRANS);
 #else
     (void)codes;
     train_plan();
@@ -483,7 +564,7 @@ static void build_tables(void)
  * that the tower above reads. When the reader has used it up, `fill` refills it: it compacts
  * the buffer, refills the pair's own input first if needed (recursively, down the chain), and
  * runs the pair's steps. A group of four pairs (one from each of four chains) is filled in
- * lockstep, by the assembly loops; a new pair's input is created on first use, starting from
+ * lockstep, by the inner loops; a new pair's input is created on first use, starting from
  * the seed. Each level's budget is 3/8 of the one above (a pair's input advances 1/phi^2 as
  * fast as its output), so the whole chain is O(log N) bytes.
  * ====================================================================================== */
@@ -504,10 +585,10 @@ static Copy *copy_new(uint32_t budget)
 {
     Copy *c = (Copy *)calloc(1, sizeof(Copy));
     c->budget = budget;
-    c->buf = (uint8_t *)_mm_malloc(budget + 256, 64);
+    c->buf = (uint8_t *)aligned_alloc64(budget + 256);
     return c;
 }
-static void chain_free(Copy *c) { while (c) { Copy *below = c->in; _mm_free(c->buf); free(c); c = below; } }
+static void chain_free(Copy *c) { while (c) { Copy *below = c->in; aligned_free64(c->buf); free(c); c = below; } }
 static inline void put_symbols(Copy *c, uint64_t syms, unsigned n)  /* n <= 28 */
 {
     uint64_t pending = c->carry | (syms << c->bits);
@@ -543,10 +624,16 @@ static void pair_steps(Copy *c, uint32_t K)
     c->row = (uint32_t)row; c->carry = carry; c->bits = (uint32_t)bits;
     c->end = (uint32_t)(out - c->buf); c->in->rd += K;
 }
+#if SPIRE_X86  /* the inner loops, in loops.S */
 uint32_t pair_chains4(uint64_t row[4], const uint8_t *const in[4], uint16_t *rec, uint32_t K);
 void pair_pack2(uint64_t st0[3], uint64_t st1[3], const uint16_t *rec0, const uint16_t *rec1, uint32_t K);
+uint32_t top_chains4(uint64_t row[4], const uint8_t *const in[4], uint16_t *rec, uint32_t K);
+void top_hash2(uint64_t st0[3], uint64_t st1[3], const uint16_t *rec0, const uint16_t *rec1, uint32_t K);
+#else          /* the same, in C */
+#include "loops.c"
+#endif
 static __thread uint16_t records[4 * RECORDS_PER_CHAIN] __attribute__((aligned(64)));
-/* K steps of n pairs: four at a time in assembly (chains first, then the symbols). */
+/* K steps of n pairs: four at a time (chains first, then the symbols). */
 static void pair_steps_n(Copy *const *c, int n, uint32_t K)
 {
     if (n < 4) { for (int j = 0; j < n; ++j) pair_steps(c[j], K); return; }
@@ -759,43 +846,73 @@ typedef struct {
     uint64_t H, count, last;     /* H is (P - 1) times the hash */
     int done;
     uint64_t *rows; unsigned n;  /* rows written and not yet summed */
-    __m256i sum; uint64_t sum1;
+    uint64_t sum[4], sum1;       /* the rows summed so far, in four lanes and one */
 } Run;
 #define MAX_STEP_ROWS (12u * 2187u)  /* a step of a tower of 8: at most 3^7 blocks of 12 rows */
 #define ROW_BUFFER 1024u
 static inline void emit(Run *r, uint64_t y) { r->H = r->H * P + (P - 1) * y; r->last = y; r->count++; r->sum1 += y; }
 
-/* Sum the written rows, four at a time; up to three stay at the front. */
+/* Sum the written rows, four at a time (eight on ARM64, into four independent sums); up to
+ * three stay at the front. */
 static inline void sum_rows(Run *r)
 {
     unsigned n = r->n, i = 0;
-    __m256i s = r->sum;
+#if ROWS_AVX2
+    __m256i s = _mm256_loadu_si256((const __m256i *)r->sum);
     for (; i + 16 <= n; i += 16) {
         __m256i a = _mm256_add_epi64(_mm256_loadu_si256((const __m256i *)(r->rows + i)), _mm256_loadu_si256((const __m256i *)(r->rows + i + 4)));
         __m256i b = _mm256_add_epi64(_mm256_loadu_si256((const __m256i *)(r->rows + i + 8)), _mm256_loadu_si256((const __m256i *)(r->rows + i + 12)));
         s = _mm256_add_epi64(s, _mm256_add_epi64(a, b));
     }
     for (; i + 4 <= n; i += 4) s = _mm256_add_epi64(s, _mm256_loadu_si256((const __m256i *)(r->rows + i)));
-    r->sum = s;
+    _mm256_storeu_si256((__m256i *)r->sum, s);
+#elif defined(__aarch64__)
+    uint64x2_t s0 = vld1q_u64(r->sum), s1 = vld1q_u64(r->sum + 2), s2 = vdupq_n_u64(0), s3 = s2;
+    for (; i + 8 <= n; i += 8) {
+        uint64x2x4_t a = vld1q_u64_x4(r->rows + i);
+        s0 = vaddq_u64(s0, a.val[0]); s1 = vaddq_u64(s1, a.val[1]); s2 = vaddq_u64(s2, a.val[2]); s3 = vaddq_u64(s3, a.val[3]);
+    }
+    if (i + 4 <= n) { s0 = vaddq_u64(s0, vld1q_u64(r->rows + i)); s1 = vaddq_u64(s1, vld1q_u64(r->rows + i + 2)); i += 4; }
+    vst1q_u64(r->sum, vaddq_u64(s0, s2)); vst1q_u64(r->sum + 2, vaddq_u64(s1, s3));
+#else
+    uint64_t s0 = r->sum[0], s1 = r->sum[1], s2 = r->sum[2], s3 = r->sum[3];
+    for (; i + 4 <= n; i += 4) { s0 += r->rows[i]; s1 += r->rows[i + 1]; s2 += r->rows[i + 2]; s3 += r->rows[i + 3]; }
+    r->sum[0] = s0; r->sum[1] = s1; r->sum[2] = s2; r->sum[3] = s3;
+#endif
     for (unsigned j = 0; i < n; ++i, ++j) r->rows[j] = r->rows[i];
     r->n = n & 3;
 }
 /* Write the rows of a step's blocks, from m and n + U before it: row = (upper ? nu : m) +
- * offset, four rows per instruction (the code's sign bit is the upper bit, so a sign-extended
- * code selects nu with a byte blend and gives the offset with a mask). */
+ * offset. With AVX2, four rows per instruction (the code's sign bit is the upper bit, so a
+ * sign-extended code selects nu with a byte blend and gives the offset with a mask); with NEON,
+ * two, from the widened codes. */
 static inline void write_rows(Run *r, const uint16_t *slots, unsigned nblocks, uint64_t m, uint64_t nu)
 {
+#if ROWS_AVX2
     const __m256i low7 = _mm256_set1_epi64x(127);
+#endif
     uint64_t *buf = r->rows;
     unsigned n = r->n;
     for (unsigned j = 0; j < nblocks; ++j) {
         const BaseRows *b = &base_rows[slots[j]];
+#if ROWS_AVX2
         const __m256i mv = _mm256_set1_epi64x((long long)m), nv = _mm256_set1_epi64x((long long)nu);
         for (unsigned g = 0; g < 3; ++g) {
             int32_t four; memcpy(&four, b->code + 4 * g, 4);
             __m256i code = _mm256_cvtepi8_epi64(_mm_cvtsi32_si128(four));
             _mm256_storeu_si256((__m256i *)(buf + n + 4 * g), _mm256_add_epi64(_mm256_blendv_epi8(mv, nv, code), _mm256_and_si256(code, low7)));
         }
+#else
+#if defined(__aarch64__)
+        const WideRows *w = &wide_rows[slots[j]];
+        const int64x2_t mv = vdupq_n_s64((int64_t)m), nv = vdupq_n_s64((int64_t)nu);
+        for (unsigned g = 0; g < 12; g += 2)
+            vst1q_s64((int64_t *)(buf + n + g), vaddq_s64(vbslq_s64(vld1q_u64(w->upper + g), nv, mv), vld1q_s64(w->offset + g)));
+#else
+        uint64_t d = nu - m;  /* all 12 rows are written; only the first len count */
+        for (unsigned g = 0; g < 12; ++g) buf[n + g] = m + (d & -(uint64_t)(b->code[g] < 0)) + (uint64_t)(b->code[g] & 127);
+#endif
+#endif
         n += b->len; m += b->dm; nu += b->dnu;
         if (n >= ROW_BUFFER) { r->n = n; sum_rows(r); n = r->n; }
     }
@@ -892,9 +1009,7 @@ static void run_steps(Run *r, uint32_t K)
     r->count += col - r->col;
     r->row = (uint32_t)row; r->m = m; r->nu = nu; r->H = H; r->col = col; r->in->rd += K;
 }
-uint32_t top_chains4(uint64_t row[4], const uint8_t *const in[4], uint16_t *rec, uint32_t K);
-void top_hash2(uint64_t st0[3], uint64_t st1[3], const uint16_t *rec0, const uint16_t *rec1, uint32_t K);
-/* K steps of n top towers: four at a time in assembly (chains, then rows, then the hash). */
+/* K steps of n top towers: four at a time (chains, then rows, then the hash). */
 static void run_steps_n(Run *const *r, int n, uint32_t K)
 {
     if (n < 4) { for (int j = 0; j < n; ++j) run_steps(r[j], K); return; }
@@ -1080,7 +1195,7 @@ static __attribute__((unused)) void train_plan(void)
     for (size_t r = 0; r + 4 <= n - 64; r += 4) count[sigma[r] | sigma[r + 1] << 2 | sigma[r + 2] << 4 | sigma[r + 3] << 6]++;
     for (unsigned b = 0; b < 256; ++b) order[b] = count[b] << 8 | (255 - b);
     qsort(order, 256, 8, by_count_desc);
-    uint32_t *code = (uint32_t *)(uintptr_t)BYTE_CODE;
+    uint32_t *code = BYTE_CODES;
     for (unsigned r = 0; r < 256; ++r) code[255 - (order[r] & 255)] = r;
     Blocks *bl = &scratch_blocks;
     Plan pp = train_machine(PAIR_HEIGHT, tower_seed(PAIR_HEIGHT, bl), sigma, n, code);
@@ -1097,8 +1212,8 @@ static __attribute__((unused)) void train_plan(void)
         print_entries("plan_top_rows", tp.rows, tp.nrows); print_entries("plan_top_trans", tp.trans, tp.ntrans);
         exit(0);
     }
-    build_machine(&pairs, PAIR_HEIGHT, (uint32_t *)(uintptr_t)PAIR_CHAIN, pp.nslots, pp.rows, pp.nrows, pp.trans, pp.ntrans);
-    build_machine(&top, TOP_HEIGHT, (uint32_t *)(uintptr_t)TOP_CHAIN, tp.nslots, tp.rows, tp.nrows, tp.trans, tp.ntrans);
+    build_machine(&pairs, PAIR_HEIGHT, PAIR_CHAINS, pp.nslots, pp.rows, pp.nrows, pp.trans, pp.ntrans);
+    build_machine(&top, TOP_HEIGHT, TOP_CHAINS, tp.nslots, tp.rows, tp.nrows, tp.trans, tp.ntrans);
 }
 
 
@@ -1131,8 +1246,8 @@ int main(int argc, char **argv)
     Result *res = (Result *)calloc(nranges, sizeof(Result));
 #pragma omp parallel
     {
-        Run *r = (Run *)_mm_malloc(GROUP * sizeof(Run), 64);
-        uint64_t *rowbuf = (uint64_t *)_mm_malloc(GROUP * 8 * (ROW_BUFFER + 64), 64);
+        Run *r = (Run *)aligned_alloc64(GROUP * sizeof(Run));
+        uint64_t *rowbuf = (uint64_t *)aligned_alloc64(GROUP * 8 * (ROW_BUFFER + 64));
 #pragma omp for schedule(dynamic, 1)
         for (int64_t i = 0; i < (int64_t)nranges; i += GROUP) {
             for (int j = 0; j < GROUP; ++j) {
@@ -1142,13 +1257,12 @@ int main(int argc, char **argv)
             run_group(r);
             for (int j = 0; j < GROUP; ++j) {
                 sum_rows(&r[j]);
-                uint64_t v[4]; _mm256_storeu_si256((__m256i *)v, r[j].sum);
-                Result x = {r[j].H, r[j].count, r[j].last, r[j].sum1 + v[0] + v[1] + v[2] + v[3]};
+                Result x = {r[j].H, r[j].count, r[j].last, r[j].sum1 + r[j].sum[0] + r[j].sum[1] + r[j].sum[2] + r[j].sum[3]};
                 for (unsigned q = 0; q < r[j].n; ++q) x.sum += r[j].rows[q];
                 res[i + j] = x;
             }
         }
-        _mm_free(r); _mm_free(rowbuf);
+        aligned_free64(r); aligned_free64(rowbuf);
     }
     uint64_t H = 0, total = 0, last = 0, sum = 0;
     for (uint64_t i = 0; i < nranges; ++i) {

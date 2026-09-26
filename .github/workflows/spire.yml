@@ -1,9 +1,11 @@
 # Copyright (c) 2026 Boon Suan Ho
 # SPDX-License-Identifier: MIT
 
-# Spire is checked against the Section 7 generator: this builds both from a clean checkout
+# Spire is checked against the Section 7 generator: each job builds both from a clean checkout
 # and compares Spire's checksums with ones computed from the generator's rows (spire/check.py,
-# about a minute in all). It runs whenever either program changes.
+# a minute or two in all). The jobs cover the assembly loops (x86-64), the C loops on ARM64
+# Linux and on Apple Silicon, and the C loops on x86-64. They run whenever either program
+# changes.
 name: Spire
 
 on:
@@ -30,9 +32,25 @@ concurrency:
 
 jobs:
   check:
-    name: Build Spire and compare it with the Section 7 generator
-    runs-on: ubuntu-24.04
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux x86-64 (assembly loops)
+            os: ubuntu-24.04
+            make: make
+          - name: Linux x86-64 (C loops)
+            os: ubuntu-24.04
+            make: make PORTABLE=1
+          - name: Linux ARM64
+            os: ubuntu-24.04-arm
+            make: make
+          - name: macOS Apple Silicon
+            os: macos-15
+            make: make
     defaults:
       run:
         working-directory: spire
@@ -48,13 +66,17 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Show the processor (Spire needs AVX2 and BMI2)
+      - name: Install OpenMP (macOS)
+        if: runner.os == 'macOS'
+        run: brew install libomp
+
+      - name: Show the processor
         run: |
-          grep -m1 'model name' /proc/cpuinfo
-          grep -qw avx2 /proc/cpuinfo && grep -qw bmi2 /proc/cpuinfo
+          if [ "$RUNNER_OS" = macOS ]; then sysctl -n machdep.cpu.brand_string; else grep -m1 -E 'model name|CPU part' /proc/cpuinfo || true; fi
+          uname -m
 
       - name: Build
-        run: make
+        run: ${{ matrix.make }}
 
       - name: Compare with the Section 7 generator
-        run: make check
+        run: ${{ matrix.make }} check

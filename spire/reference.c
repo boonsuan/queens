@@ -1,6 +1,6 @@
 /* The reference for Spire's checks: the first N rows from the Section 7 generator
  * (../fast_generator), one at a time, with the same checksums Spire reports:
- *   poly63  H = sum of y_n P^(N-1-n) mod 2^64, P = 1099511628211, printed modulo 2^63;
+ *   poly63  H = sum of q_n P^(N-1-n) mod 2^64, P = 1099511628211, printed modulo 2^63;
  *   sum     the sum of the rows mod 2^64;
  *   last    the last row.
  *

@@ -1,6 +1,6 @@
 # Spire
 
-Spire generates the greedy queen rows y<sub>0</sub>, y<sub>1</sub>, y<sub>2</sub>, … much
+Spire generates the greedy queen rows q<sub>0</sub>, q<sub>1</sub>, q<sub>2</sub>, … much
 faster than the generator of Section 7, by reorganizing the same calculation for a modern
 processor. It is exact, it uses every core, and like the Section 7 generator it needs only
 logarithmic memory. On an 8-core desktop it makes the first 10<sup>10</sup> rows in 0.04
@@ -12,9 +12,17 @@ and checking itself against that generator's rows.
 
 ## Running it
 
-It needs an x86-64 processor with AVX2 and BMI2 (Intel since 2013, AMD since 2015), GCC and
-Python 3, on Linux or on Windows with MSYS2 (in the UCRT64 shell:
-`pacman -S make mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-python`).
+It needs a 64-bit processor, a C compiler with OpenMP and Python 3:
+
+- **Linux:** GCC (or clang with libomp), on x86-64 or ARM64.
+- **macOS:** Apple's clang with Homebrew's OpenMP (`brew install libomp`), on Apple Silicon
+  or Intel.
+- **Windows:** MSYS2, in the UCRT64 shell
+  (`pacman -S make mingw-w64-ucrt-x86_64-gcc mingw-w64-ucrt-x86_64-python`).
+
+On x86-64 with AVX2 and BMI2 (Intel since 2013, AMD since 2015), under Linux or Windows, the
+inner loops are in assembly (`loops.S`). Everywhere else, and with `make PORTABLE=1`, they are
+the same loops in C (`loops.c`).
 
 ```sh
 make                              # build/spire and build/spire-rows (a few seconds)
@@ -28,7 +36,7 @@ Both take `N [threads] [ranges]` and print one line of JSON: `last` (the last ro
 2<sup>64</sup>), the number of `slow_steps` (see "Exact tables"), the time spent building the
 tables (`setup`) and in all (`seconds`), and the peak physical memory (`peak_mib`).
 
-The checksum is H = Σ y<sub>n</sub> P<sup>N−1−n</sup> mod 2<sup>64</sup>, with the prime
+The checksum is H = Σ q<sub>n</sub> P<sup>N−1−n</sup> mod 2<sup>64</sup>, with the prime
 P = 1099511628211; Spire reports it modulo 2<sup>63</sup> (see "The rows' checksum").
 `make check` computes it, and the sum of the rows, directly from the rows of the Section 7
 generator for N from 1 to 10<sup>8</sup>, and compares.
@@ -48,12 +56,44 @@ Peak memory is about 20 MiB at every N up to 10<sup>12</sup>: each thread's chai
 take a few dozen kilobytes (logarithmic in N), and the tables about a megabyte. The checksums at
 10<sup>10</sup>, 10<sup>11</sup> and 10<sup>12</sup> are `268175a70febc7ec`,
 `2453193a2e8aae58` and `74986f235efafcda`. Under Linux (tested under WSL 1, which emulates it)
-the results are the same and the times somewhat longer.
+the results are the same and the times somewhat longer. On this processor the C loops
+(`make PORTABLE=1`) take 0.050 s at 10<sup>10</sup>, and 0.60 s writing the rows.
+
+AWS Graviton4 (Neoverse V2, 16 cores, `c8g.4xlarge`), Ubuntu 24.04, GCC 13.3, C loops, all
+threads, setup included:
+
+| N | `spire` | `spire-rows` |
+|---|---|---|
+| 10<sup>9</sup> | 0.008 s | 0.077 s |
+| 10<sup>10</sup> | 0.020 s | 0.68 s |
+| 10<sup>11</sup> | 0.14 s | 6.7 s |
+| 10<sup>12</sup> | 1.3 s | |
+
+The checksums are the same as on x86-64. ARM64 has 31 general registers, so there the C
+compiler keeps all four chains in registers by itself (see "What the processor wants").
+
+Apple M5 (4 performance and 6 efficiency cores, 24 GB), macOS 26.6, Apple clang 21.0 with
+Homebrew's libomp 23.1, C loops, all 10 threads, the default 64 ranges, setup included:
+
+| N | `spire` | `spire-rows` |
+|---|---|---|
+| 10<sup>9</sup> | 0.006 s | 0.085 s |
+| 10<sup>10</sup> | 0.023 s | 0.80 s |
+| 10<sup>11</sup> | 0.19 s | 8.0 s |
+| 10<sup>12</sup> | 1.8 s | 85 s |
+
+The checksums are again the same, and peak memory is 14 MiB (18 MiB for `spire-rows`). The two
+kinds of core run at different speeds, so the longer runs gain from smaller pieces of work: with
+160 ranges (`build/spire N 10 160`) they take 4 to 9% less (`spire` 1.7 s at 10<sup>12</sup>,
+`spire-rows` 0.74 s at 10<sup>10</sup> and 77 s at 10<sup>12</sup>), while the shortest take a
+little more (0.008 s at 10<sup>9</sup>: each range costs about 0.2 ms to start). The performance
+cores alone are slower (2.5 s at 10<sup>12</sup> on 4 threads).
 
 ## How it works
 
-The code is `spire.c`, whose comments walk through the ideas below in order; `loops.S` holds the
-four inner loops in assembly, and `layout.h` says where the tables live.
+The code is `spire.c`, whose comments walk through the ideas below in order. `loops.S` holds the
+four inner loops in x86-64 assembly and `loops.c` the same loops in C, and `layout.h` says where
+the tables live.
 
 ### A chain of copies, started anywhere
 
@@ -126,10 +166,11 @@ step waits about 15 cycles for the cache.
 
 - **Four chains at once.** Each thread runs four ranges side by side, so the processor always has
   an independent lookup to work on.
-- **Every chain in registers.** With four chains the C compiler ran out of registers and kept
-  parts of the chains on the stack, adding a store and a load to every step. The loops are
-  therefore in assembly with registers assigned by hand, and the tables sit at fixed low
-  addresses so that an instruction can name a table as a constant.
+- **Every chain in registers.** On x86-64, with its 16 general registers, the C compiler ran out
+  of registers with four chains and kept parts of them on the stack, adding a store and a load
+  to every step. The loops there are therefore in assembly with registers assigned by hand, and
+  the tables sit at fixed addresses so that an instruction can name a table as a constant.
+  ARM64 has 31 registers, and the C loops need no such help.
 - **Chains apart from their work.** A step's other work (packing its symbols, updating the hash)
   would fill the processor's schedulers while waiting for the chain. So one loop runs the four
   chains alone, recording each step's slot, and a second loop does the work from the records.
@@ -149,8 +190,9 @@ cache. Taller towers than eight would need a wider row counter (a step of nine c
 78 732 rows) for little gain. And a loop bound by multiplications, like the checksum's, runs no
 faster with two threads per core, which share one multiplier.
 
-Spire needs x86-64 because of its assembly; the ideas do not. A processor without AVX2 and BMI2,
-or of another architecture, would need the four inner loops rewritten.
+The assembly is worth about a fifth of `spire`'s time on x86-64 (0.040 s against 0.050 s at
+10<sup>10</sup>). `spire-rows` writes its rows with AVX2 on x86-64 processors that have it,
+and with NEON on ARM64.
 
 ## Files
 
@@ -158,7 +200,8 @@ or of another architecture, would need the four inner loops rewritten.
 |---|---|
 | `spire.c` | The program, with an overview of the ideas and a section for each |
 | `spire-rows.c` | `spire.c` compiled to write every row |
-| `loops.S` | The four inner loops (chains, symbol packing, checksum), for Linux and Windows |
+| `loops.S` | The four inner loops (chains, symbol packing, checksum) in x86-64 assembly, for Linux and Windows |
+| `loops.c` | The same loops in C, for other processors and systems |
 | `layout.h` | The fixed addresses of the tables, shared by the C and the assembly |
 | `make_records.py` | Writes the record tables, checking the counter formulas along σ |
 | `reference.c` | The Section 7 generator's rows, with Spire's checksums |

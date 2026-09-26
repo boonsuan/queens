@@ -16,8 +16,11 @@ def run(program, *args):
     path = os.path.join(HERE, 'build', program)
     if os.path.exists(path + '.exe'):
         path += '.exe'
-    out = subprocess.run([path] + [str(a) for a in args], check=True, capture_output=True, text=True).stdout
-    return json.loads(out)
+    command = [path] + [str(a) for a in args]
+    done = subprocess.run(command, capture_output=True, text=True)
+    if done.returncode:
+        sys.exit('%s failed (exit status %d): %s' % (' '.join(command), done.returncode, done.stderr.strip()))
+    return json.loads(done.stdout)
 
 failures = 0
 def expect(label, got, want, keys):
