@@ -14,9 +14,10 @@
  *    reads one byte (four symbols of sigma) and makes 3-12 symbols (or, for copy 0, 3-12 rows).
  *
  * 2. Any copy can be started anywhere. From the set of all 300 "paused records", the actual
- *    input symbols shrink it to the true record within 43 symbols (we read 128), and a record
- *    gives the copy's exact counters there. So each thread builds its own chain of copies for
- *    its own range of columns, and nothing is shared but the tables.
+ *    input symbols shrink it to the true record within 58 symbols (we read 128; proved in
+ *    synchronization.py), and a record gives the copy's exact counters there. So each thread
+ *    builds its own chain of copies for its own range of columns, and nothing is shared but
+ *    the tables.
  *
  * 3. A stack of k consecutive copies is itself a transducer: its state is the k classes and
  *    the few (0-3) symbols pending between each two copies. One input byte of the stack drives
@@ -43,7 +44,13 @@
  *    in assembly (loops.S) and the tables sit at fixed addresses (layout.h); on any other
  *    64-bit processor, such as ARM64 (Apple Silicon, Graviton), they are in C (loops.c).
  *
- * Usage:  spire N [threads] [ranges]
+ * The same code makes four programs (see "main" at the end):
+ *     spire N [threads] [ranges]         the checksum of the first N rows
+ *     spire-rows N [threads] [ranges]    the same, writing every row to memory (ROWS=1)
+ *     spire-print A B [--binary] [threads]
+ *                                        the rows q_A .. q_(B-1), to standard output (PRINT=1)
+ *     spire-at n [n ...]                 each q_n alone, in time logarithmic in n (spire-at.c)
+ * Numbers may be written 10000, 1e12 or 10^18, and B also as +k (for A + k).
  *
  * It builds under Linux, macOS and Windows (MSYS2), with GCC or clang and OpenMP.
  */
@@ -71,14 +78,18 @@
 #endif
 #endif
 #include <omp.h>
+#include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #ifdef _WIN32
 #include <windows.h>
 #include <psapi.h>
 #include <malloc.h>
+#include <fcntl.h>
+#include <io.h>
 #else
 #include <sys/mman.h>
 #include <sys/resource.h>
@@ -87,8 +98,14 @@
 #include "records.h"  /* the 300 paused records (build/records.h, from make_records.py) */
 #include "layout.h"
 
+#ifndef PRINT
+#define PRINT 0             /* 1: write the rows out (spire-print) */
+#endif
+#ifndef AT
+#define AT 0                /* 1: part of spire-at.c, which has its own main */
+#endif
 #ifndef ROWS
-#define ROWS 0              /* 1: also write every row to memory (spire-rows) */
+#define ROWS PRINT          /* 1: also write every row to memory (spire-rows, spire-print) */
 #endif
 #define TOP_HEIGHT 8        /* the copies in the top tower */
 #define PAIR_HEIGHT 2       /* the copies in each tower of the chain below it */
@@ -104,9 +121,40 @@ typedef struct { uint64_t lo, hi; uint32_t x; } PlanEntry;  /* a state's key, an
 #endif
 
 #define P UINT64_C(1099511628211)  /* the prime of the checksum (FNV's) */
-static const double PHI = 1.6180339887498949;
 static void die(const char *what, uint64_t x) { fprintf(stderr, "spire: %s %llu\n", what, (unsigned long long)x); exit(1); }
 static uint64_t power(uint64_t b, uint64_t e) { uint64_t r = 1; while (e) { if (e & 1) r *= b; b *= b; e >>= 1; } return r; }
+/* x / phi in 64.64 fixed point, for every 64-bit x: x times 1/phi = phi - 1 to 192 bits. The
+ * integer part is exact (the error is below x 2^-192, and x/phi is never that close to an
+ * integer: |x phi - k| > 1/(3x)); so is the fraction, to within 2^-63. */
+static unsigned __int128 times_inv_phi(uint64_t x)
+{
+    typedef unsigned __int128 u128;
+    const uint64_t f0 = UINT64_C(0x1082276bf3a27251), f1 = UINT64_C(0xf39cc0605cedc834), f2 = UINT64_C(0x9e3779b97f4a7c15);
+    u128 t = ((u128)x * f1) + (((u128)x * f0) >> 64);
+    return ((u128)x * f2) + (t >> 64);
+}
+static uint64_t div_phi(uint64_t x) { return (uint64_t)(times_inv_phi(x) >> 64); }  /* floor(x / phi) */
+/* A count from the command line: 1000000, 1e12 or 10^18 (an exact integer below 2^64). */
+static uint64_t parse_count(const char *s)
+{
+    char *end;
+    int bad = *s < '0' || *s > '9';
+    errno = 0;
+    uint64_t a = strtoull(s, &end, 10), base = 0;
+    if (*end == 'e' || *end == 'E') base = 10;
+    else if (*end == '^') base = a, a = 1;
+    if (base) {
+        const char *x = end + 1;
+        uint64_t e = strtoull(x, &end, 10);
+        bad |= *x < '0' || *x > '9';
+        for (uint64_t i = 0; i < e && !bad; ++i) {
+            bad = base > 1 && a > UINT64_MAX / base;
+            a *= base;
+        }
+    }
+    if (bad || *end || errno == ERANGE) { fprintf(stderr, "spire: cannot read %s as a whole number below 2^64\n", s); exit(2); }
+    return a;
+}
 
 
 /* ======================================================================================
@@ -425,6 +473,19 @@ static void aligned_free64(void *p)
     free(p);
 #endif
 }
+/* Seconds, from a monotonic clock with a resolution of a microsecond or better. */
+static double now(void)
+{
+#ifdef _WIN32
+    LARGE_INTEGER f, c;
+    QueryPerformanceFrequency(&f); QueryPerformanceCounter(&c);
+    return (double)c.QuadPart / (double)f.QuadPart;
+#else
+    struct timespec t;
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return (double)t.tv_sec + 1e-9 * (double)t.tv_nsec;
+#endif
+}
 /* The most physical memory the process has held, in bytes. */
 static double peak_memory(void)
 {
@@ -698,7 +759,7 @@ static inline unsigned next_byte(Copy *c)
  *
  * To start a copy near column A: its input copy is started a little before A/phi, the copy
  * reads 128 of its input symbols, keeping the records consistent with them; one record is
- * left (they synchronize within 43), and the record gives m, n and U there:
+ * left (always within 58 symbols: synchronization.py), and the record gives m, n and U there:
  *     m = p - |Q|,  n = m + U(m-1) + z,  U(n-1) = m + w - |D|,  p the input position
  * (make_records.py checks these along the word).
  * The copy is then run one step at a time up to A. Copies run this way are "walkers"; a
@@ -739,7 +800,7 @@ static Start start_at(const uint8_t *win, uint64_t p, uint64_t Up)
     st.cls = (unsigned)rec_base[R];
     return st;
 }
-static inline uint64_t input_start(uint64_t col) { return 30 + 4 * (uint64_t)((double)(col - 48 - MARGIN) / (4 * PHI)); }
+static inline uint64_t input_start(uint64_t col) { return 30 + 4 * (div_phi(col - 48 - MARGIN) / 4); }
 
 /* A walker: a single copy, one entry at a time. It reads either a pair (in) or another walker
  * (from); q[h .. t) is what it has made and its reader has not taken. */
@@ -841,8 +902,9 @@ static Copy *start_pair(uint64_t col, uint32_t budget, uint64_t *U_before)
  * A run is the top tower of one range: its state (a row of the top table), its input (the
  * pair below it), the counters m, n + U and the column, and the hash (kept as (P - 1) H).
  * It starts as a stack of walkers (to A exactly), runs whole tower steps, and near B, where
- * the next step would pass B, finishes as walkers again. With ROWS, every row is also
- * written to a buffer of 1024 rows, which is summed whenever it fills.
+ * the next step would pass B, finishes as walkers again (a short range is walked throughout).
+ * With ROWS, every row is also written to a buffer of 1024 rows, which is summed (and, with
+ * PRINT, printed) whenever it fills.
  * ====================================================================================== */
 typedef struct {
     Copy *in;
@@ -851,17 +913,45 @@ typedef struct {
     uint64_t H, count, last;     /* H is (P - 1) times the hash */
     int done;
     uint64_t *rows; unsigned n;  /* rows written and not yet summed */
-    uint64_t sum[4], sum1;       /* the rows summed so far, in four lanes and one */
+    uint64_t sum[4];             /* the rows summed so far, in four lanes */
+    char *out; size_t outlen;    /* PRINT: the range's output so far */
 } Run;
 #define MAX_STEP_ROWS (12u * 2187u)  /* a step of a tower of 8: at most 3^7 blocks of 12 rows */
 #define ROW_BUFFER 1024u
-static inline void emit(Run *r, uint64_t y) { r->H = r->H * P + (P - 1) * y; r->last = y; r->count++; r->sum1 += y; }
 
-/* Sum the written rows, four at a time (eight with AVX-512 or on ARM64, into independent
- * sums); up to three stay at the front. */
+#if PRINT
+/* The rows as text, one decimal number a line, or as 64-bit little-endian binary. */
+static int print_binary;
+static const char digit_pairs[] =
+    "00010203040506070809101112131415161718192021222324252627282930313233343536373839"
+    "40414243444546474849505152535455565758596061626364656667686970717273747576777879"
+    "8081828384858687888990919293949596979899";
+static inline char *put_decimal(char *p, uint64_t x)
+{
+    char digits[24], *d = digits + sizeof digits;
+    while (x >= 100) { d -= 2; memcpy(d, digit_pairs + 2 * (x % 100), 2); x /= 100; }
+    if (x >= 10) { d -= 2; memcpy(d, digit_pairs + 2 * x, 2); } else *--d = (char)('0' + x);
+    size_t n = (size_t)(digits + sizeof digits - d);
+    memcpy(p, d, n); p[n] = '\n';
+    return p + n + 1;
+}
+static void print_rows(Run *r, const uint64_t *rows, unsigned k)
+{
+    if (print_binary) { memcpy(r->out + r->outlen, rows, 8 * (size_t)k); r->outlen += 8 * (size_t)k; return; }
+    char *p = r->out + r->outlen;
+    for (unsigned i = 0; i < k; ++i) p = put_decimal(p, rows[i]);
+    r->outlen = (size_t)(p - r->out);
+}
+#endif
+
+/* Sum the written rows (and print them), four at a time (eight with AVX-512 or on ARM64, into
+ * independent sums); up to three stay at the front. */
 static inline void sum_rows(Run *r)
 {
     unsigned n = r->n, i = 0;
+#if PRINT
+    print_rows(r, r->rows, n & ~3u);
+#endif
 #if ROWS_AVX512
     __m512i s0 = _mm512_setzero_si512(), s1 = s0;
     for (; i + 16 <= n; i += 16) {
@@ -948,6 +1038,24 @@ static inline void write_step_rows(Run *r, uint64_t slot, uint64_t m, uint64_t n
     uint64_t ref = TOP_BLOCK_REFS[slot];
     write_rows(r, top_block_lists + (uint32_t)ref, (unsigned)(ref >> 32), m, nu);
 }
+/* One row made by walking (near the ends of a range). */
+static inline void emit(Run *r, uint64_t y)
+{
+    r->H = r->H * P + (P - 1) * y; r->last = y; r->count++;
+    if (ROWS) { r->rows[r->n++] = y; if (r->n >= ROW_BUFFER) sum_rows(r); }
+}
+/* The sum of a finished range's rows: the rest of the buffer summed (and printed). */
+static uint64_t rows_total(Run *r)
+{
+    sum_rows(r);
+#if PRINT
+    print_rows(r, r->rows, r->n);
+#endif
+    uint64_t s = r->sum[0] + r->sum[1] + r->sum[2] + r->sum[3];
+    for (unsigned q = 0; q < r->n; ++q) s += r->rows[q];
+    r->n = 0;
+    return s;
+}
 
 /* One block of the top copy, walking: the rows in [A, B) are emitted. */
 static unsigned walk_block(Run *r, unsigned cls, unsigned byte)
@@ -961,12 +1069,18 @@ static unsigned walk_block(Run *r, unsigned cls, unsigned byte)
     r->col += LEN(e); r->m += DM(e); r->nu += LEN(e) + DU(e);
     return NEXT(e);
 }
+/* The input buffer of a range's top: the full budget for a long range, less for a short one,
+ * which would not use it (a byte of the top's input stands for about 190 rows). */
+static uint32_t top_budget(uint64_t rows) { return rows / 64 > TOP_BUDGET ? TOP_BUDGET : rows / 64 < 256 ? 256 : (uint32_t)(rows / 64); }
 static void run_start(Run *r, uint64_t A, uint64_t B)
 {
     uint64_t *rows = r->rows;
+    char *out = r->out;
     memset(r, 0, sizeof *r);
-    r->rows = rows; r->A = A; r->B = B;
+    r->rows = rows; r->out = out; r->A = A; r->B = B;
     if (A >= B) { r->done = 1; return; }
+    const uint32_t budget = top_budget(B - A);
+    const int walk_all = B - A < 2 * (uint64_t)MAX_STEP_ROWS + 2;  /* too short for tower steps */
     Walker *w = (Walker *)malloc(TOP_HEIGHT * sizeof(Walker));  /* copies 1 .. 7 of the tower */
     unsigned cls;
     if (A < SMALL * 4) {
@@ -980,14 +1094,14 @@ static void run_start(Run *r, uint64_t A, uint64_t B)
             w[i].cls = QF_INITIAL_STATE; w[i].h = 0; w[i].t = QF_INITIAL_LENGTH;
             for (unsigned j = 0; j < QF_INITIAL_LENGTH; ++j) w[i].q[j] = (uint8_t)symbol(QF_INITIAL_SYMBOLS, j);
             w[i].from = i + 1 < TOP_HEIGHT ? &w[i + 1] : NULL;
-            w[i].in = i + 1 < TOP_HEIGHT ? NULL : seed_copy(TOP_BUDGET);
+            w[i].in = i + 1 < TOP_HEIGHT ? NULL : seed_copy(budget);
         }
     } else {
         /* p[i]: where copy i + 1 finds its record; the pair below starts before the last. */
         uint64_t p[TOP_HEIGHT], U;
         p[0] = input_start(A);
         for (unsigned i = 1; i < TOP_HEIGHT; ++i) p[i] = input_start(p[i - 1] - WARM);
-        Copy *in = start_pair(p[TOP_HEIGHT - 1] - WARM, TOP_BUDGET, &U);
+        Copy *in = start_pair(p[TOP_HEIGHT - 1] - WARM, budget, &U);
         walker_start(&w[TOP_HEIGHT - 1], in, NULL, p[TOP_HEIGHT - 1], U, p[TOP_HEIGHT - 2] - WARM);
         for (unsigned i = TOP_HEIGHT - 2; i >= 1; --i) walker_start(&w[i], NULL, &w[i + 1], p[i], 0, p[i - 1] - WARM);
         uint8_t win[WARM];
@@ -995,12 +1109,13 @@ static void run_start(Run *r, uint64_t A, uint64_t B)
         if (st.n > A) die("the top started past column", A);
         r->col = st.n; r->m = st.m; r->nu = st.n + st.U; cls = st.cls;
     }
-    /* To A, then let each copy read what is pending, from the bottom up. */
-    while (r->col < B && r->col < A) cls = walk_block(r, cls, walker_byte(&w[1]));
+    /* To A (or through a short range), then let each copy read what is pending, bottom up. */
+    r->in = w[TOP_HEIGHT - 1].in;
+    while (r->col < B && (r->col < A || walk_all)) cls = walk_block(r, cls, walker_byte(&w[1]));
+    if (r->col >= B) { r->done = 1; free(w); return; }
     for (unsigned i = TOP_HEIGHT - 1; i >= 2; --i)
         while (walker_have(&w[i]) >= 4) walker_step(&w[i - 1]);
     while (r->col < B && walker_have(&w[1]) >= 4) cls = walk_block(r, cls, walker_byte(&w[1]));
-    r->in = w[TOP_HEIGHT - 1].in;
     if (r->col >= B) { r->done = 1; free(w); return; }
     Tower *t = &scratch_tower;  /* the tower's state */
     t->height = TOP_HEIGHT; t->cls[0] = cls;
@@ -1045,7 +1160,7 @@ static void run_steps_n(Run *const *r, int n, uint32_t K)
         const uint8_t *in[4];
         for (int j = 0; j < 4; ++j) {
             row[j] = r[j]->row; in[j] = r[j]->in->buf + r[j]->in->rd;
-            st[j][0] = r[j]->m << 24; st[j][1] = r[j]->nu - r[j]->m; st[j][2] = r[j]->H + r[j]->m;
+            st[j][0] = 0; st[j][1] = r[j]->nu - r[j]->m; st[j][2] = r[j]->H + r[j]->m;  /* M from 0 */
         }
         uint32_t k = top_chains4(row, in, records, want);
         if (ROWS)
@@ -1062,7 +1177,7 @@ static void run_steps_n(Run *const *r, int n, uint32_t K)
         top_hash2(st[2], st[3], records + 2 * RECORDS_PER_CHAIN, records + 3 * RECORDS_PER_CHAIN, k);
         for (int j = 0; j < 4; ++j) {
             uint64_t cols = st[j][0] & 0xFFFFFF;
-            r[j]->row = (uint32_t)row[j]; r[j]->m = st[j][0] >> 24; r[j]->col += cols; r[j]->count += cols;
+            r[j]->row = (uint32_t)row[j]; r[j]->m += st[j][0] >> 24; r[j]->col += cols; r[j]->count += cols;
             r[j]->nu = r[j]->m + st[j][1]; r[j]->H = st[j][2] - r[j]->m; r[j]->in->rd += k;
         }
         done += k;
@@ -1092,10 +1207,11 @@ static void run_finish(Run *r)
     free(w);
     r->done = 1;
 }
-/* A group of four ranges, run side by side until all are done. */
+/* A group of four ranges, run side by side until all are done. (Compiled on its own, not
+ * inlined, so that the inner loops' use of registers does not depend on the caller.) */
 #define GROUP 4
 #define LOW_INPUT 64u
-static void run_group(Run *r)
+static __attribute__((noinline)) void run_group(Run *r)
 {
     for (;;) {
         Run *active[GROUP]; Copy *inputs[GROUP];
@@ -1243,9 +1359,102 @@ static __attribute__((unused)) void train_plan(void)
 
 
 /* ======================================================================================
- * main: ranges in groups of four, on all threads; the checksum is combined over the ranges
- * (H_total = H_total P^(rows of the next range) + H_next).
+ * main
+ *
+ * spire and spire-rows: the first N rows, as ranges in groups of four on all threads; the
+ * checksum is combined over the ranges (H_total = H_total P^(rows of the next range) + H_next).
+ * spire-print: the rows of [A, B), in pieces of four ranges, computed on all threads and
+ * written in order. (spire-at is in spire-at.c.)
  * ====================================================================================== */
+#define MAX_COLUMN UINT64_C(10000000000000000000)  /* 10^19: rows up to 1.62 10^19 fit in 64 bits */
+/* H is (P - 1) times the checksum: halve it and divide by the odd (P - 1) / 2, mod 2^63. */
+static uint64_t poly63(uint64_t H)
+{
+    uint64_t q = (P - 1) / 2, qinv = q;
+    for (int i = 0; i < 6; ++i) qinv *= 2 - q * qinv;
+    return ((H >> 1) * qinv) & (~UINT64_C(0) >> 1);
+}
+static void prepare(void)
+{
+    build_tables();
+    for (unsigned x = 1; x < 30; ++x) U29 += qf_seed_queens[x] > x;
+}
+
+#if AT
+/* spire-at.c has its own main. */
+
+#elif PRINT
+#define RANGE_ROWS (UINT64_C(1) << 17)  /* rows per range; four ranges make a piece */
+int main(int argc, char **argv)
+{
+    uint64_t arg[3];
+    int na = 0, count = 0;  /* count: B was written +k, for B = A + k */
+    for (int i = 1; i < argc; ++i) {
+        if (!strcmp(argv[i], "--binary")) print_binary = 1;
+        else if (na == 1 && argv[i][0] == '+') count = 1, arg[na++] = parse_count(argv[i] + 1);
+        else if (na < 3) arg[na++] = parse_count(argv[i]);
+        else na = 4;
+    }
+    if (count && na >= 2) arg[1] = arg[1] > MAX_COLUMN ? UINT64_MAX : arg[0] + arg[1];
+    if (na < 2 || na > 3 || arg[1] < arg[0] || arg[1] > MAX_COLUMN) {
+        fprintf(stderr, "usage: spire-print A B [--binary] [threads]\n"
+                        "  the rows q_A .. q_(B-1), A <= B <= 10^19 (B may be written +k, for A + k),\n"
+                        "  one a line in decimal (or, with --binary, as 64-bit little-endian numbers)\n");
+        return 2;
+    }
+    const uint64_t A = arg[0], B = arg[1];
+    if (na == 3) omp_set_num_threads((int)arg[2]);
+    int nthreads = omp_get_max_threads();
+#ifdef _WIN32
+    _setmode(_fileno(stdout), _O_BINARY);  /* the same bytes as elsewhere: no \r\n */
+#endif
+    double t0 = now();
+    prepare();
+    /* Room for a row: 8 bytes, or the digits of the largest row (below 2B + 64) and a newline. */
+    size_t width = 8;
+    if (!print_binary) { width = 2; for (unsigned __int128 x = (unsigned __int128)B * 2 + 64; x >= 10; x /= 10) ++width; }
+    const uint64_t piece = GROUP * RANGE_ROWS, npieces = (B - A + piece - 1) / piece;
+    uint64_t H = 0, total = 0, last = 0, sum = 0, bytes = 0;
+#pragma omp parallel
+    {
+        Run *r = (Run *)aligned_alloc64(GROUP * sizeof(Run));
+        uint64_t *rowbuf = (uint64_t *)aligned_alloc64(GROUP * 8 * (ROW_BUFFER + 64));
+        char *outbuf = (char *)aligned_alloc64(GROUP * RANGE_ROWS * width + 64);
+#pragma omp for ordered schedule(dynamic, 1)
+        for (int64_t k = 0; k < (int64_t)npieces; ++k) {
+            uint64_t sums[GROUP];
+            for (int j = 0; j < GROUP; ++j) {
+                uint64_t lo = A + (uint64_t)k * piece + j * RANGE_ROWS, hi = lo + RANGE_ROWS;
+                r[j].rows = rowbuf + j * (ROW_BUFFER + 64);
+                r[j].out = outbuf + j * RANGE_ROWS * width;
+                run_start(&r[j], lo < B ? lo : B, hi < B ? hi : B);
+            }
+            run_group(r);
+            for (int j = 0; j < GROUP; ++j) sums[j] = rows_total(&r[j]);
+#pragma omp ordered
+            for (int j = 0; j < GROUP; ++j) {
+                if (r[j].outlen && fwrite(r[j].out, 1, r[j].outlen, stdout) != r[j].outlen) {
+                    if (errno != EPIPE) perror("spire-print");  /* a closed pipe (| head) is no error */
+                    exit(1);
+                }
+                H = H * power(P, r[j].count) + r[j].H;
+                total += r[j].count; sum += sums[j]; bytes += r[j].outlen;
+                if (r[j].count) last = r[j].last;
+            }
+        }
+        aligned_free64(r); aligned_free64(rowbuf); aligned_free64(outbuf);
+    }
+    if (fflush(stdout)) { if (errno != EPIPE) perror("spire-print"); return 1; }
+    if (total != B - A) die("rows made:", total);
+    fprintf(stderr, "{\"A\":%llu,\"B\":%llu,\"format\":\"%s\",\"bytes\":%llu,\"threads\":%d,\"last\":%llu,"
+                    "\"poly63\":\"%016llx\",\"rows_sum\":\"%016llx\",\"seconds\":%.3f,\"peak_mib\":%.1f}\n",
+            (unsigned long long)A, (unsigned long long)B, print_binary ? "binary" : "text", (unsigned long long)bytes,
+            nthreads, (unsigned long long)last, (unsigned long long)poly63(H), (unsigned long long)sum,
+            now() - t0, peak_memory() / 1048576);
+    return 0;
+}
+
+#else
 typedef struct { uint64_t H, count, last, sum; } Result;
 int main(int argc, char **argv)
 {
@@ -1257,17 +1466,17 @@ int main(int argc, char **argv)
         plan_mode = 1; build_tables();
 #endif
     }
-    const uint64_t N = strtoull(argv[1], NULL, 10);
-    if (argc > 2) omp_set_num_threads(atoi(argv[2]));
+    const uint64_t N = parse_count(argv[1]);
+    if (N > MAX_COLUMN) die("N must be at most 10^19, not", N);
+    if (argc > 2) omp_set_num_threads((int)parse_count(argv[2]));
     int nthreads = omp_get_max_threads();
-    uint64_t nranges = argc > 3 ? strtoull(argv[3], NULL, 10) : 64;
+    uint64_t nranges = argc > 3 ? parse_count(argv[3]) : 64;
     if (N < 1000000) nranges = GROUP;
     nranges = (nranges + GROUP - 1) / GROUP * GROUP;
 
-    double t0 = omp_get_wtime();
-    build_tables();
-    double t1 = omp_get_wtime();
-    for (unsigned x = 1; x < 30; ++x) U29 += qf_seed_queens[x] > x;
+    double t0 = now();
+    prepare();
+    double t1 = now();
     Result *res = (Result *)calloc(nranges, sizeof(Result));
 #pragma omp parallel
     {
@@ -1277,13 +1486,12 @@ int main(int argc, char **argv)
         for (int64_t i = 0; i < (int64_t)nranges; i += GROUP) {
             for (int j = 0; j < GROUP; ++j) {
                 r[j].rows = rowbuf + j * (ROW_BUFFER + 64);
-                run_start(&r[j], N * (uint64_t)(i + j) / nranges, N * (uint64_t)(i + j + 1) / nranges);
+                run_start(&r[j], (uint64_t)((unsigned __int128)N * (uint64_t)(i + j) / nranges),
+                                 (uint64_t)((unsigned __int128)N * (uint64_t)(i + j + 1) / nranges));
             }
             run_group(r);
             for (int j = 0; j < GROUP; ++j) {
-                sum_rows(&r[j]);
-                Result x = {r[j].H, r[j].count, r[j].last, r[j].sum1 + r[j].sum[0] + r[j].sum[1] + r[j].sum[2] + r[j].sum[3]};
-                for (unsigned q = 0; q < r[j].n; ++q) x.sum += r[j].rows[q];
+                Result x = {r[j].H, r[j].count, r[j].last, rows_total(&r[j])};
                 res[i + j] = x;
             }
         }
@@ -1295,16 +1503,13 @@ int main(int argc, char **argv)
         total += res[i].count; sum += res[i].sum;
         if (res[i].count) last = res[i].last;
     }
-    double t2 = omp_get_wtime();
+    double t2 = now();
     if (total != N) die("rows made:", total);
-    /* H is (P - 1) times the checksum: halve it and divide by the odd (P - 1) / 2, mod 2^63. */
-    uint64_t q = (P - 1) / 2, qinv = q;
-    for (int i = 0; i < 6; ++i) qinv *= 2 - q * qinv;
-    uint64_t poly63 = ((H >> 1) * qinv) & (~UINT64_C(0) >> 1);
     printf("{\"N\":%llu,\"threads\":%d,\"ranges\":%llu,\"last\":%llu,\"poly63\":\"%016llx\"",
-           (unsigned long long)N, nthreads, (unsigned long long)nranges, (unsigned long long)last, (unsigned long long)poly63);
+           (unsigned long long)N, nthreads, (unsigned long long)nranges, (unsigned long long)last, (unsigned long long)poly63(H));
     if (ROWS) printf(",\"rows_sum\":\"%016llx\"", (unsigned long long)sum);
     printf(",\"slow_steps\":%llu,\"setup\":%.3f,\"seconds\":%.3f,\"peak_mib\":%.1f}\n",
            (unsigned long long)slow_steps, t1 - t0, t2 - t0, peak_memory() / 1048576);
     return 0;
 }
+#endif

@@ -1,7 +1,8 @@
 # Build and check Spire (see README.md).
 #
-#   make         build/spire and build/spire-rows
-#   make check   compare their output with the Section 7 generator's rows
+#   make         build/spire, spire-rows, spire-print and spire-at
+#   make check   compare their output with the Section 7 generator's rows, and prove that
+#                a copy's record is always found (synchronization.py)
 #   make clean
 #
 # Needs a C compiler with OpenMP (GCC; on macOS, Apple's clang with Homebrew's libomp) and
@@ -42,7 +43,8 @@ SPIRE = spire.c loops.c loops.S layout.h $(GENERATED)/tables.h build/records.h
 BUILD = $(CC) $(CFLAGS) $(WARN) $(DEFINES) -Ibuild -I$(GENERATED)
 
 .PHONY: all check clean
-all: build/spire$(X) build/spire-rows$(X)
+PROGRAMS = build/spire$(X) build/spire-rows$(X) build/spire-print$(X) build/spire-at$(X)
+all: $(PROGRAMS)
 
 build:
 	mkdir -p build
@@ -61,12 +63,17 @@ build/spire$(X): $(SPIRE) build/plan.h
 	$(BUILD) spire.c $(ASM) $(OPENMP) -o $@
 build/spire-rows$(X): spire-rows.c $(SPIRE) build/plan.h
 	$(BUILD) spire-rows.c $(ASM) $(OPENMP) -o $@
+build/spire-print$(X): spire-print.c $(SPIRE) build/plan.h
+	$(BUILD) spire-print.c $(ASM) $(OPENMP) -o $@
+build/spire-at$(X): spire-at.c $(SPIRE) build/plan.h
+	$(BUILD) spire-at.c $(ASM) $(OPENMP) -o $@
 
 # The reference: the Section 7 generator, one row at a time.
 build/reference$(X): reference.c ../fast_generator/src/queens_fast.c ../fast_generator/src/queens_fast.h $(GENERATED)/tables.h | build
 	$(CC) -O3 -std=c11 -DNDEBUG -fwrapv $(WARN) -I../fast_generator/src reference.c ../fast_generator/src/queens_fast.c -o $@
 
-check: build/spire$(X) build/spire-rows$(X) build/reference$(X)
+check: $(PROGRAMS) build/reference$(X)
+	$(PYTHON) synchronization.py
 	$(PYTHON) check.py
 
 clean:

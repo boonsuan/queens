@@ -56,9 +56,9 @@ static void pair_pack2(uint64_t st0[3], uint64_t st1[3], const uint16_t *rec0, c
     st1[0] = c1; st1[1] = b1; st1[2] = (uint64_t)(uintptr_t)o1;
 }
 
-/* K recorded steps of two top towers (st = {M = m << 24 | columns, D = (n + U) - m,
- * F = (P - 1) H + m}): F <- F P^L + D (P-1) B + (P-1) C + dm, M += dm << 24 | L,
- * D += dnu - dm. */
+/* K recorded steps of two top towers (st = {M = (the advance of m) << 24 | columns,
+ * D = (n + U) - m, F = (P - 1) H + m}): F <- F P^L + D (P-1) B + (P-1) C + dm,
+ * M += dm << 24 | L, D += dnu - dm. */
 static void top_hash2(uint64_t st0[3], uint64_t st1[3], const uint16_t *rec0, const uint16_t *rec1, uint32_t K)
 {
     const TopStep *restrict steps = TOP_STEPS;

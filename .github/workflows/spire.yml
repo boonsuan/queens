@@ -14,12 +14,14 @@ on:
     paths:
       - 'spire/**'
       - 'fast_generator/**'
+      - 'oeis/results/history-40.json'
       - '.github/workflows/spire.yml'
   pull_request:
     branches: [main]
     paths:
       - 'spire/**'
       - 'fast_generator/**'
+      - 'oeis/results/history-40.json'
       - '.github/workflows/spire.yml'
   workflow_dispatch:
 

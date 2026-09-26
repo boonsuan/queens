@@ -3,8 +3,8 @@
 Spire starts a copy of the calculation anywhere by finding its paused record from the input
 symbols just before that point (the records inconsistent with them drop out), and reads the
 copy's counters off the record. This script writes what that needs, for each record: w, z,
-|D| and |Q|, its successor on each input symbol, and the table class (row offset in
-../fast_generator/generated/tables.h) that it pauses in.
+|D| and |Q|, its successor on each input symbol, and the table position (row offset in
+../fast_generator/generated/tables.h) of its class.
 
 It also checks, along the first 2^21 symbols of the queen word, the formulas Spire relies on.
 At every byte boundary, with p the input position (the index of the next symbol read),
@@ -81,6 +81,16 @@ for k in range(LENGTH // 4 - 16):
     for s in sigma[4 * k: 4 * k + 4]:
         record = successor[(record, s)]
 
+# Every record's table position. A copy's table position is the class of its current record
+# (Section 7.3), so the records met above show where each of the 82 classes sits in the table
+# (two compatible classes share a position); the classes then place the records never met.
+classes = records['mapping_to_82_classes']
+class_position = {}
+for record, position in record_class.items():
+    assert class_position.setdefault(classes[record], position) == position, ('class', record)
+assert len(class_position) == len(set(classes)), 'a class never met along the word'
+record_position = [class_position[classes[i]] for i in range(len(states))]
+
 output = sys.argv[1] if len(sys.argv) > 1 else os.path.join(HERE, 'build', 'records.h')
 os.makedirs(os.path.dirname(output), exist_ok=True)
 with open(output, 'w') as f:
@@ -93,6 +103,6 @@ with open(output, 'w') as f:
     f.write('static const uint8_t rec_Qn[%d] = {%s};\n' % (n, ','.join(str(len(s[6])) for s in states)))
     f.write('static const int16_t rec_next[%d][4] = {%s};\n' % (n, ','.join(
         '{%s}' % ','.join(str(successor.get((i, s), -1)) for s in range(4)) for i in range(n))))
-    f.write('static const int16_t rec_base[%d] = {%s};\n' % (n, ','.join(str(record_class.get(i, -1)) for i in range(n))))
-print('%s: %d records, %d met along %d symbols; the counter formulas hold at %d byte boundaries'
-      % (os.path.relpath(output), len(states), len(record_class), LENGTH, LENGTH // 4 - 16))
+    f.write('static const int16_t rec_base[%d] = {%s};\n' % (n, ','.join(str(p) for p in record_position)))
+print('%s: %d records (%d met along %d symbols) in %d classes; the counter formulas hold at %d byte boundaries'
+      % (os.path.relpath(output), len(states), len(record_class), LENGTH, len(class_position), LENGTH // 4 - 16))

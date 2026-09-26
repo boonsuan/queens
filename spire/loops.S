@@ -218,11 +218,12 @@ EPILOGUE
  *                uint32_t K);   st = {M, D, F}
  *
  * Applies K recorded steps of two top towers to their counters and hash:
- *     M = m << 24 | columns,   D = (n + U) - m,   F = (P - 1) H + m,
+ *     M = (the advance of m) << 24 | columns,   D = (n + U) - m,   F = (P - 1) H + m,
  * and a step with slot data {L | dm << 24, (P-1) B, (P-1) C + dm, dnu - dm} does
  *     F <- F P^L + D (P-1) B + (P-1) C + dm      (two multiplications)
  *     M += dm << 24 | L,    D += dnu - dm.
- * The columns ride in M's low 24 bits (the caller keeps K * L below 2^24).
+ * The columns ride in M's low 24 bits (the caller keeps K * L below 2^24, and starts M at 0,
+ * so that m itself may use all 64 bits).
  *
  * Registers:  r12 rdi rbx  M, D, F of tower 0     r10  record of tower 0 (advances)
  *             r13 rsi rbp  M, D, F of tower 1     r11  rec1 - rec0     r14  end
