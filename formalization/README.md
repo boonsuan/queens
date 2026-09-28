@@ -4,7 +4,7 @@ This directory formalizes Boon Suan Ho's *Greedy Queens and the Golden Ratio*
 in Lean 4 with mathlib. It is a self-contained Lake project within the
 [companion-code repository](../README.md).
 
-**Paper:** [Greedy Queens and the Golden Ratio (PDF)](https://boonsuan.github.io/queens.pdf).
+**Paper:** [Greedy Queens and the Golden Ratio](https://arxiv.org/abs/2609.31336) (arXiv:2609.31336).
 
 The formalization proves Theorem 1 and its supporting results, Corollaries 18–19,
 Lemma 20, and Proposition 21 for the sequence defined by the greedy placement rule.
@@ -113,7 +113,7 @@ an infinite constant tail.
 
 **Outside the formalized scope:** Section 7's fast-generation algorithm and
 Proposition 22, and the unnumbered return-word catalogues following Corollary 19.
-Result numbers refer to the [paper](https://boonsuan.github.io/queens.pdf).
+Result numbers refer to the [paper](https://arxiv.org/abs/2609.31336).
 
 ## Paper-to-code correspondence
 
