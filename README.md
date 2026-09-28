@@ -1,9 +1,10 @@
 # Greedy Queens and the Golden Ratio: companion code
 
 Place a queen in each successive column of an infinite chessboard, always in
-the lowest row where no earlier queen attacks it. The paper *Greedy Queens
-and the Golden Ratio* by Boon Suan Ho proves that the queen in column *n* lies
-within a bounded distance of row *nφ* or of row *n*/*φ*, where
+the lowest row where no earlier queen attacks it. The paper
+[*Greedy Queens and the Golden Ratio*](https://arxiv.org/abs/2609.31336)
+proves that the queen in column *n* lies within a bounded distance of row *nφ*
+or of row *n*/*φ*, where
 *φ* = (1 + √5)/2 is the golden ratio.
 
 The proof reduces the theorem to a finite computation, and the paper also
