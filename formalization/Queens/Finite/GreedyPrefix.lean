@@ -4,7 +4,7 @@ import Mathlib.Data.Nat.Bitwise
 /-!
 # Efficient certificates for finite greedy prefixes
 
-The attainment part of Corollary 19 requires actual queens, rather than paths
+The attainment part of Corollary 20 requires actual queens, rather than paths
 merely allowed by the finite graph. The checker here maintains the three attack
 masks of the defining greedy rule. Its correctness is proved for arbitrary
 prefixes; the numerical certificate is supplied separately.
@@ -12,7 +12,7 @@ prefixes; the numerical certificate is supplied separately.
 
 namespace Queens.Finite
 
-/-- Corollary 19, attainment checks: the attacked rows in the current column,
+/-- Corollary 20, attainment checks: the attacked rows in the current column,
 separated into horizontal, upward-diagonal, and downward-diagonal attacks. -/
 structure AttackBoard where
   /-- Rows already occupied by an earlier queen. -/
@@ -23,39 +23,39 @@ structure AttackBoard where
   falling : ℕ
   deriving DecidableEq
 
-/-- Corollary 19: the initially empty bitboard, before the queen at the origin. -/
+/-- Corollary 20: the initially empty bitboard, before the queen at the origin. -/
 def AttackBoard.empty : AttackBoard := ⟨0, 0, 0⟩
 
-/-- Corollary 19: place a queen and advance to the next column. -/
+/-- Corollary 20: place a queen and advance to the next column. -/
 def AttackBoard.advance (b : AttackBoard) (r : ℕ) : AttackBoard :=
   ⟨b.rows ||| 2 ^ r, (b.rising ||| 2 ^ r) <<< 1,
     (b.falling ||| 2 ^ r) >>> 1⟩
 
-/-- Corollary 19: the union of the three attack masks. -/
+/-- Corollary 20: the union of the three attack masks. -/
 def AttackBoard.attacks (b : AttackBoard) : ℕ := b.rows ||| b.rising ||| b.falling
 
-/-- Corollary 19: a proposed queen is unattacked and all smaller rows are
+/-- Corollary 20: a proposed queen is unattacked and all smaller rows are
 attacked. The bit-mask equality checks every smaller row simultaneously. -/
 def AttackBoard.checkRow (b : AttackBoard) (r : ℕ) : Bool :=
   !(b.attacks.testBit r) && (b.attacks &&& (2 ^ r - 1) == 2 ^ r - 1)
 
-/-- Corollary 19: verify every entry of a proposed prefix by the greedy rule. -/
+/-- Corollary 20: verify every entry of a proposed prefix by the greedy rule. -/
 def AttackBoard.checkRows (b : AttackBoard) : List ℕ → Bool
   | [] => true
   | r :: rs => b.checkRow r && (b.advance r).checkRows rs
 
-/-- Corollary 19: a bitboard represents precisely the attacks of the actual
+/-- Corollary 20: a bitboard represents precisely the attacks of the actual
 queens strictly before column `n`. -/
 def AttackBoard.Represents (b : AttackBoard) (n : ℕ) : Prop :=
   (∀ r, b.rows.testBit r = true ↔ ∃ i < n, r = q i) ∧
   (∀ r, b.rising.testBit r = true ↔ ∃ i < n, r + i = q i + n) ∧
   (∀ r, b.falling.testBit r = true ↔ ∃ i < n, r + n = q i + i)
 
-/-- For Corollary 19, the empty board represents the defining greedy process before column zero. -/
+/-- For Corollary 20, the empty board represents the defining greedy process before column zero. -/
 theorem AttackBoard.empty_represents : AttackBoard.empty.Represents 0 := by
   simp [Represents, empty]
 
-/-- For Corollary 19, advancing a represented attack board with the actual queen preserves its
+/-- For Corollary 20, advancing a represented attack board with the actual queen preserves its
 interpretation. This justifies the shifts in the finite prefix checker. -/
 theorem AttackBoard.Represents.advance {b : AttackBoard} {n : ℕ}
     (h : b.Represents n) : (b.advance (q n)).Represents (n + 1) := by
@@ -107,7 +107,7 @@ theorem AttackBoard.Represents.advance {b : AttackBoard} {n : ℕ}
         subst i
         omega
 
-/-- For Corollary 19, on a represented board, a clear bit is exactly an available row in the
+/-- For Corollary 20, on a represented board, a clear bit is exactly an available row in the
 original least-unattacked-row definition. -/
 theorem AttackBoard.Represents.available_iff {b : AttackBoard} {n : ℕ}
     (h : b.Represents n) (r : ℕ) :
@@ -126,7 +126,7 @@ theorem AttackBoard.Represents.available_iff {b : AttackBoard} {n : ℕ}
   · rintro ⟨hr, hd, ha⟩ i
     exact ⟨hr i.val i.isLt, hd i.val i.isLt, ha i.val i.isLt⟩
 
-/-- For Corollary 19, a successfully checked row on a represented board is the actual greedy
+/-- For Corollary 20, a successfully checked row on a represented board is the actual greedy
 choice, not just a legal nonattacking placement. -/
 theorem AttackBoard.Represents.eq_q_of_checkRow {b : AttackBoard} {n r : ℕ}
     (h : b.Represents n) (hc : b.checkRow r = true) : r = q n := by
@@ -143,7 +143,7 @@ theorem AttackBoard.Represents.eq_q_of_checkRow {b : AttackBoard} {n r : ℕ}
   have hav := (h.available_iff (q n)).mp (q_available n)
   simp [hav] at hb
 
-/-- For Corollary 19, every entry of a successfully checked list agrees with the actual greedy
+/-- For Corollary 20, every entry of a successfully checked list agrees with the actual greedy
 sequence, beginning at the column represented by its initial attack board. -/
 theorem AttackBoard.Represents.q_eq_of_checkRows {b : AttackBoard} {n : ℕ}
     (h : b.Represents n) {rows : List ℕ} (hc : b.checkRows rows = true) :

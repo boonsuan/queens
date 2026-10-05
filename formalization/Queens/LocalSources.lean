@@ -11,7 +11,7 @@ import Queens.Finite.Sources
 The upper-column bits in a retained actual word segment recover differences
 of the actual upper count. This file connects the `(h, Γ(h))` source list of
 Section 4.4 to the greedy board and establishes the retained-source exclusions
-used in Lemma 16.
+used in Lemma 17.
 -/
 
 namespace Queens
@@ -23,7 +23,7 @@ namespace Queens
 
 /-- Summing upper-column bits over a positive-index actual segment gives
 the change in the upper count. This is the prefix/suffix interpretation of
-`Γ` in equation (C), Section 4.4. -/
+`Γ` in equation (15), Section 4.4. -/
 theorem sum_upperBits_wordSegment (start length : ℕ) (hstart : 0 < start) :
     upperCount (start - 1) + ((wordSegment start length).map Finite.upperBit).sum =
       upperCount (start + length - 1) := by
@@ -42,7 +42,7 @@ theorem sum_upperBits_wordSegment (start length : ℕ) (hstart : 0 < start) :
     omega
 
 /-- Prefix bits through a retained queue column give its relative upper
-count. This is the nonnegative-offset part of equation (C). -/
+count. This is the nonnegative-offset part of equation (15). -/
 theorem queue_prefix_upperCount {m length k : ℕ} (hm : 0 < m) (hk : k < length) :
     ((((wordSegment m length).take (k + 1)).map Finite.upperBit).sum : ℤ) =
       relativeUpperCount m (m + k) := by
@@ -54,7 +54,7 @@ theorem queue_prefix_upperCount {m length k : ℕ} (hm : 0 < m) (hk : k < length
   omega
 
 /-- Suffix bits strictly after a retained history column give the negative
-of its relative count. This is the negative-offset part of equation (C). -/
+of its relative count. This is the negative-offset part of equation (15). -/
 theorem history_suffix_upperCount {m length k : ℕ} (hm : length ≤ m) (hk : k < length) :
     -((((wordSegment (m - length) length).drop (k + 1)).map Finite.upperBit).sum : ℤ) =
       relativeUpperCount m (m - length + k) := by
@@ -88,12 +88,12 @@ theorem mem_queueColumns_wordSegment {m length : ℕ} (hm : 0 < m) (p : ℤ × �
   · rintro ⟨symbol, k, ⟨hk, rfl⟩, hpair⟩
     by_cases hu : m + k < q (m + k)
     · refine ⟨k, hk, hu, ?_⟩
-      simpa only [upperBit_queenSymbol, columnBit, if_pos hu, ↓reduceIte,
+      simpa only [upperBit_queenSymbol, columnBit, ite_eq_left hu, ↓reduceIte,
         Option.some.injEq, queue_prefix_upperCount hm hk] using hpair.symm
     · simp [upperBit_queenSymbol, columnBit, hu] at hpair
   · rintro ⟨k, hk, hu, rfl⟩
     refine ⟨queenSymbol (m + k), k, ⟨hk, rfl⟩, ?_⟩
-    simp only [upperBit_queenSymbol, columnBit, if_pos hu, ↓reduceIte, Option.some.injEq]
+    simp only [upperBit_queenSymbol, columnBit, ite_eq_left hu, ↓reduceIte, Option.some.injEq]
     rw [queue_prefix_upperCount hm hk]
 
 /-- The executable history-source list contains exactly the actual upper
@@ -107,12 +107,12 @@ theorem mem_historyColumns_wordSegment {m length : ℕ} (hm : length ≤ m) (p :
   · rintro ⟨symbol, k, ⟨hk, rfl⟩, hpair⟩
     by_cases hu : m - length + k < q (m - length + k)
     · refine ⟨k, hk, hu, ?_⟩
-      simpa only [upperBit_queenSymbol, columnBit, if_pos hu, ↓reduceIte,
+      simpa only [upperBit_queenSymbol, columnBit, ite_eq_left hu, ↓reduceIte,
         Option.some.injEq, wordSegment_length, history_suffix_upperCount hm hk] using hpair.symm
     · simp [upperBit_queenSymbol, columnBit, hu] at hpair
   · rintro ⟨k, hk, hu, rfl⟩
     refine ⟨queenSymbol (m - length + k), k, ⟨hk, rfl⟩, ?_⟩
-    simp only [upperBit_queenSymbol, columnBit, if_pos hu, ↓reduceIte, Option.some.injEq,
+    simp only [upperBit_queenSymbol, columnBit, ite_eq_left hu, ↓reduceIte, Option.some.injEq,
       wordSegment_length]
     rw [history_suffix_upperCount hm hk]
 
@@ -133,7 +133,7 @@ theorem StateRepresented.decode_input {memory : ℕ}
 
 /-- The stored source list represents exactly the actual upper queens in
 the retained interval. This is the semantic link from the finite source
-computation to the coordinates of Propositions 12–13. -/
+computation to the coordinates of Propositions 13–14. -/
 theorem StateRepresented.mem_upperColumns {memory : ℕ}
     {n : ℕ} {s : Finite.State}
     (hrep : StateRepresented n s memory) (length : ℕ) (p : ℤ × ℤ) :
@@ -180,9 +180,9 @@ theorem StateRepresented.mem_upperColumns {memory : ℕ}
       dsimp [k]
       omega
 
-/-- Under Lemma 16's lower bound on `z` and the candidate queue-extension
+/-- Under Lemma 17's lower bound on `z` and the candidate queue-extension
 bound, all attacking upper queens lie in the retained history and queue.
-The right side is exactly Proposition 12's relative-coordinate test. -/
+The right side is exactly Proposition 13's relative-coordinate test. -/
 theorem upper_antidiagonal_retained_iff {memory : ℕ} {n r length : ℕ} (hn : 0 < n)
     (hz : -4 ≤ upperDisplacement n)
     (hqueue : rowReference n + length ≤ n)
@@ -213,7 +213,7 @@ theorem upper_antidiagonal_retained_iff {memory : ℕ} {n r length : ℕ} (hn : 
     refine ⟨i, by omega, hi, ?_⟩
     exact (upper_antidiagonal_test hi (rowReference n) n r).mpr hattack
 
-/-- **Proposition 12 for the finite calculation.** When the input history
+/-- **Proposition 13 for the finite calculation.** When the input history
 and queue are actual word segments and the request bound is met, the
 executable upper-antidiagonal test detects exactly actual earlier attacks. -/
 theorem StateRepresented.antidiagonalAttack_iff {memory : ℕ}
@@ -263,7 +263,7 @@ theorem StateRepresented.upperColumns_toFinset {memory : ℕ}
 
 /-- Counting retained source pairs satisfying a test is the same as counting
 the corresponding actual upper columns. This injective-image fact supplies
-the two finite cardinalities in Proposition 13. -/
+the two finite cardinalities in Proposition 14. -/
 theorem StateRepresented.upperColumns_filter_card {memory : ℕ}
     {n : ℕ} {s : Finite.State}
     (hrep : StateRepresented n s memory) (length : ℕ) (P : ℤ × ℤ → Prop) [DecidablePred P] :
@@ -281,7 +281,7 @@ theorem StateRepresented.upperColumns_filter_card {memory : ℕ}
   rw [Finset.filter_filter]
 
 /-- The nonnegative-offset part of `J(T-m-κ)` counts exactly the upper rows
-at or below `T` coming from queue columns, as in Proposition 13. -/
+at or below `T` coming from queue columns, as in Proposition 14. -/
 theorem StateRepresented.upperColumns_addition_card {memory : ℕ}
     {n : ℕ} {s : Finite.State}
     (hrep : StateRepresented n s memory) (length T : ℕ) :
@@ -307,7 +307,7 @@ theorem StateRepresented.upperColumns_addition_card {memory : ℕ}
     omega
 
 /-- The negative-offset part of `J(T-m-κ)` counts exactly the upper rows
-above `T` whose columns lie in the input history, as in Proposition 13. -/
+above `T` whose columns lie in the input history, as in Proposition 14. -/
 theorem StateRepresented.upperColumns_removal_card {memory : ℕ}
     {n : ℕ} {s : Finite.State}
     (hrep : StateRepresented n s memory) (length T : ℕ) :
@@ -338,7 +338,7 @@ private theorem length_filter_eq_card_filter_toFinset {α : Type*} [DecidableEq 
   rw [← List.toFinset_card_of_nodup (hl.filter _), List.toFinset_filter]
   simp only [decide_eq_true_eq]
 
-/-- **Proposition 13 for the executable source list.** Assuming the omitted
+/-- **Proposition 14 for the executable source list.** Assuming the omitted
 old and future sources lie on the stated sides of the row threshold, the
 finite adjustment computes the actual upper-row count minus `κ`. -/
 theorem StateRepresented.adjustment_eq_upperRowCount {memory : ℕ}
@@ -365,7 +365,7 @@ theorem StateRepresented.adjustment_eq_upperRowCount {memory : ℕ}
   unfold countReference
   omega
 
-/-- Under Lemma 16's bounds, the finite adjustment gives the actual row
+/-- Under Lemma 17's bounds, the finite adjustment gives the actual row
 count at either output threshold, `n - 1` or `n`. -/
 theorem StateRepresented.adjustment_eq_upperRowCount_near_column {memory : ℕ}
     {n length T : ℕ} {s : Finite.State} (hrep : StateRepresented n s memory)
@@ -390,7 +390,7 @@ theorem StateRepresented.adjustment_eq_upperRowCount_near_column {memory : ℕ}
     omega
 
 /-- The output bit computed by Algorithm 1 agrees with the actual row bit.
-This is the output-symbol part of Lemma 16, combining Proposition 13 at
+This is the output-symbol part of Lemma 17, combining Proposition 14 at
 the two adjacent thresholds. -/
 theorem StateRepresented.adjustment_difference_eq_upperRowBit {memory : ℕ}
     {n length : ℕ} {s : Finite.State} (hrep : StateRepresented n s memory) (hn : 0 < n)
@@ -415,7 +415,7 @@ theorem StateRepresented.adjustment_difference_eq_upperRowBit {memory : ℕ}
 
 /-- All executable candidate tests agree with actual availability when the
 extended queue is an actual segment long enough for the requested candidate.
-This combines the set-mask representation, queue row bit, and Proposition 12
+This combines the set-mask representation, queue row bit, and Proposition 13
 into the exact test used in Algorithm 1's candidate loop. -/
 theorem StateRepresented.candidate_tests_iff {memory : ℕ}
     {n r length : ℕ} {s : Finite.State} (hrep : StateRepresented n s memory) (hn : 0 < n)

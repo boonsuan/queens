@@ -5,7 +5,8 @@ the lowest row where no earlier queen attacks it. The paper
 [*Greedy Queens and the Golden Ratio*](https://arxiv.org/abs/2609.31336)
 proves that the queen in column *n* lies within a bounded distance of row *nφ*
 or of row *n*/*φ*, where
-*φ* = (1 + √5)/2 is the golden ratio.
+*φ* = (1 + √5)/2 is the golden ratio (Theorem 1), and that the narrower ranges
+Knuth observed for these distances hold in every column (Theorem 2).
 
 The proof reduces the theorem to a finite computation, and the paper also
 uses that computation to answer questions from the OEIS and to generate the
@@ -14,14 +15,14 @@ code, organised by the part of the paper it supports. Each folder has its
 own README with commands, expected output, and a map from files to sections
 of the paper.
 
-The [Lean 4 + mathlib formalization](formalization/README.md) proves Theorem 1,
-Corollaries 18–19, Lemma 20, and Proposition 21, including their finite
-certificates, using only kernel-checked proofs.
+The [Lean 4 + mathlib formalization](formalization/README.md) proves Theorems 1
+and 2 and Corollaries 19 and 20 (diagonal coverage; column runs and gaps),
+including their finite certificates, using only kernel-checked proofs.
 
 | Folder | Paper | What it contains |
 |---|---|---|
 | [`formalization/`](formalization/) | Sections 2–6, Appendix A | Lean proofs, kernel-checked finite certificates, and a paper-to-code guide |
-| [`verification/`](verification/) | Sections 4–6, Appendix A | The local calculation, the history graph, and the exhaustive check behind the main theorem |
+| [`verification/`](verification/) | Sections 4–6, Appendix A | The local calculation, the history graph, and the exhaustive checks behind Theorems 1 and 2 |
 | [`oeis/`](oeis/) | Section 6.5, Appendix A | The finite graphs and witnesses behind the consequences for related OEIS sequences |
 | [`fast_generator/`](fast_generator/) | Section 7, Appendix A | A C11 program that generates the sequence in linear time and logarithmic memory, with its measurements |
 | [`spire/`](spire/) | Beyond the paper | The Section 7 calculation reorganized for a modern processor: 10<sup>10</sup> rows in 0.04 s on eight cores, in logarithmic memory; any stretch of rows written out; and single rows computed on their own, such as q<sub>10<sup>100</sup></sub> in 9 ms |
@@ -32,7 +33,9 @@ The Python programs need Python 3.10 or later and nothing else.
 
 ```sh
 python verification/verify_tuples.py    # the exhaustive check of Section 6.3 (a few seconds)
+python verification/knuth_ranges.py     # Theorem 2 and Knuth's ranges, Section 6.6 (a few seconds)
 python verification/trace.py 41 44      # the actual local states, column by column (Section 4.6)
+python verification/states.py 1000000   # the actual state before any column (Section 7.5)
 python oeis/run_all.py                  # the checks behind Section 6.5 (under a minute)
 ```
 
@@ -45,6 +48,13 @@ make
 make verify && make test                # its finite checks (about ten seconds)
 ```
 
+GitHub Actions runs these checks whenever the folders they cover change:
+[`checks.yml`](.github/workflows/checks.yml) runs every program of
+`verification/` and `oeis/` on Python 3.10 and 3.13, and builds and tests the
+generator with GCC, Clang, and Apple Clang, including the sanitizer builds and
+the scanner of Knuth's ranges. Spire and the Lean formalization have workflows
+of their own.
+
 ## Where to start, depending on what you have read
 
 - **Formal proofs in Lean.** See [`formalization/README.md`](formalization/README.md)
@@ -54,10 +64,11 @@ make verify && make test                # its finite checks (about ten seconds)
   on a few columns and compare its output with the examples of Section 4.6.
   Then read `verification/calculation.py`, which follows Section 4.5 and
   Algorithm 1 step by step.
-- **Sections 5 and 6 (the proof).** Run the five commands in
+- **Sections 5 and 6 (the proof).** Run the commands in
   [`verification/README.md`](verification/README.md). `verify_tuples.py` is
-  the finite check of Section 6.3; `verify_bitmasks.py` repeats it
-  independently.
+  the finite check of Section 6.3, and `knuth_ranges.py` the check of
+  Section 6.6 behind Theorem 2; `verify_bitmasks.py` and
+  `knuth_ranges_bitmasks.py` repeat them independently.
 - **Section 6.5 (OEIS consequences).** See [`oeis/README.md`](oeis/README.md).
 - **Section 7 (fast generation).** See
   [`fast_generator/README.md`](fast_generator/README.md). For how far the same

@@ -4,7 +4,7 @@ import Queens.Finite.IndexedTable
 /-!
 # Indexed interpretation of the forty-symbol table
 
-Corollary 19 uses one canonical tree of indexed state and adjacency records.
+Corollary 20 uses one canonical tree of indexed state and adjacency records.
 The public arrays are its in-order projections. A linear, key-only kernel check
 identifies the stored indices with their array positions. State computations
 can then use logarithmic tree lookups without trusting the tree layout.
@@ -15,22 +15,22 @@ namespace Queens.Finite.Forty
 set_option maxRecDepth 100000
 set_option Elab.async false
 
-/-- Corollary 19: indices of the proposed forty-symbol state table. -/
+/-- Corollary 20: indices of the proposed forty-symbol state table. -/
 abbrev Vertex := Fin FortyData.states.size
 
-/-- Corollary 19: the state at an indexed graph vertex. -/
+/-- Corollary 20: the state at an indexed graph vertex. -/
 def state (v : Vertex) : State := FortyData.states[v]
 
-/-- Corollary 19: the proposed successor indices of a graph vertex. -/
+/-- Corollary 20: the proposed successor indices of a graph vertex. -/
 def successorIndices (v : Vertex) : List ℕ := FortyData.successors[v.val]?.getD []
 
-/-- Corollary 19: the successor states selected by the proposed adjacency. -/
+/-- Corollary 20: the successor states selected by the proposed adjacency. -/
 def successorStates (v : Vertex) : List State :=
   (successorIndices v).filterMap (fun j => FortyData.states[j]?)
 
 set_option maxHeartbeats 0 in
 -- Kernel reduction checks the complete finite certificate at this declaration.
-/-- Corollary 19: the stored keys enumerate precisely the positions of the
+/-- Corollary 20: the stored keys enumerate precisely the positions of the
 canonical table. Only natural-number keys are evaluated by this kernel check. -/
 theorem vertexKeys_checked :
     (indexedEntries FortyData.vertexTable).map Prod.fst =
@@ -76,12 +76,12 @@ theorem entry_at_vertex (v : Vertex) :
     exact (Option.some.inj hs).symm
   · simp only [successorIndices, entry_successors_get? hmem, Option.getD_some]
 
-/-- Corollary 19: read target states through the balanced table. Missing
+/-- Corollary 20: read target states through the balanced table. Missing
 indices are discarded here but explicitly rejected by `checkVertexEntry`. -/
 def fastSuccessorStates (indices : List ℕ) : List State :=
   indices.filterMap (fun j => (indexedLookup j FortyData.vertexTable).map Prod.fst)
 
-/-- Corollary 19: check a state and its outgoing index list directly from the
+/-- Corollary 20: check a state and its outgoing index list directly from the
 canonical tree. Every index must resolve, and the resulting successor set must
 agree exactly with all branches of the local calculation. -/
 def checkVertexEntry (entry : ℕ × (State × List ℕ)) : Bool :=
@@ -91,7 +91,7 @@ def checkVertexEntry (entry : ℕ × (State × List ℕ)) : Bool :=
     | .error _ => false
     | .ok next => decide (next.toFinset = (fastSuccessorStates entry.2.2).toFinset)
 
-/-- Corollary 19: a successful target lookup is the state at that exact public
+/-- Corollary 20: a successful target lookup is the state at that exact public
 index. The statement uses only lookup soundness and the checked key alignment. -/
 theorem lookup_state_eq {i : ℕ} {payload : State × List ℕ}
     (hlookup : indexedLookup i FortyData.vertexTable = some payload) :

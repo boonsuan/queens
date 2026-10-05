@@ -1,6 +1,6 @@
 """The branch of the calculation that reads the actual earlier symbols.
 
-The lemma of Section 5 concerns this branch: on an actual board, when every
+Lemma 17 concerns this branch: on an actual board, when every
 request is answered with the actual earlier symbol of the queen word, the
 calculation carries out the actual greedy step. This module runs that branch
 column after column and checks it against the board computed directly by

@@ -15,6 +15,7 @@ axiom or an accidentally admitted proof makes the audit fail.
 #print axioms Queens.count_error_lt
 #print axioms Queens.main_of_diagonalDiscrepancy
 #print axioms Queens.Finite.historyGraph_wellFormed
+#print axioms Queens.Finite.historyGraph_no_sinks
 #print axioms Queens.Finite.certificate_checked
 #print axioms Queens.Finite.initialState_represented
 #print axioms Queens.main_of_localStepExact
@@ -29,12 +30,18 @@ axiom or an accidentally admitted proof makes the audit fail.
 #print axioms Queens.q_diagonal_bijective
 #print axioms Queens.lowerDiagonal_bijOn
 
-#print axioms Queens.exact_error_recursion
-#print axioms Queens.referenceLowerRank_lt
-#print axioms Queens.Finite.prefix_sharp_count_error
-#print axioms Queens.Finite.sharp_certificate_checked
-#print axioms Queens.sharp_count_error
-#print axioms Queens.sharper_bounds
+#print axioms Queens.diagonal_discrepancy_range
+#print axioms Queens.diagonal_discrepancy_range_attained
+#print axioms Queens.one_step_error_identity
+#print axioms Queens.input_eq_output_of_represented
+#print axioms Queens.window_bounds_hold
+#print axioms Queens.Finite.windowStates_checked
+#print axioms Queens.Finite.windowVertices_checked
+#print axioms Queens.Finite.certified_inputWindow_mem
+#print axioms Queens.Finite.graphVertex_isOutput
+#print axioms Queens.window_bounds_verified
+#print axioms Queens.knuth_bounds
+#print axioms Queens.knuth_ranges
 
 #print axioms Queens.lower_column_run_lengths
 #print axioms Queens.upper_column_run_lengths

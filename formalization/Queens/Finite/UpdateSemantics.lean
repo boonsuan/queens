@@ -5,7 +5,7 @@ import Queens.LocalRequests
 /-!
 # The record update reproduces the actual board update
 
-This file proves the last stage of Lemma 16, using the mathematical reference
+This file proves the last stage of Lemma 17, using the mathematical reference
 updates from Section 4.5 and the exact bit-mask and word encodings. Its hypotheses
 explicitly identify the selected queen and reference advances; choosing that
 queen and finding those advances are separate stages of Algorithm 1.
@@ -31,11 +31,11 @@ theorem inserted_masks_represented {n : ℕ} {s : State}
       rw [← hrep.window_eq]
       unfold window rowOffset
       omega
-    simp only [if_pos hn, Option.elim_some, offsets_insertOffset, hdiag,
+    simp only [ite_eq_left hn, Option.elim_some, offsets_insertOffset, hdiag,
       insertedRowOffsets, insertedDiagonalOffsets, insertedAntidiagonalOffsets]
     simp only [hrep.rowOffsets_eq, hrep.diagonalOffsets_eq,
       hrep.antidiagonalOffsets_eq, and_self]
-  · simp only [if_neg hn, Option.elim_none, insertedRowOffsets,
+  · simp only [ite_eq_right hn, Option.elim_none, insertedRowOffsets,
       insertedDiagonalOffsets, insertedAntidiagonalOffsets]
     simp only [hrep.rowOffsets_eq, hrep.diagonalOffsets_eq,
       hrep.antidiagonalOffsets_eq, and_self]
@@ -57,7 +57,7 @@ theorem diagonalAdvance_actual {n mask : ℕ}
     rw [hmask] at hm
     exact hs.1 hm
 
-/-- Equation (update): correctly represented temporary records, actual advances,
+/-- Equation (23): correctly represented temporary records, actual advances,
 and actual consumed symbols yield all five actual numerical/set records. -/
 theorem updateState_records {n : ℕ} {s : State}
     (hn : 0 < n) (hrep : RecordsRepresented n s)
@@ -82,7 +82,7 @@ theorem updateState_records {n : ℕ} {s : State}
   antidiagonalOffsets_eq := by
     simpa only [updateState, offsets_shiftRight, hantidiagonals] using antidiagonalOffsets_succ n
 
-/-- Lemma 16(ii), final update stage: actual temporary records, advances, and
+/-- Lemma 17(ii), final update stage: actual temporary records, advances, and
 symbols produce a completely represented state at the next column. The strict
 queue bound records that the row-search stopping bit remains in the queue. -/
 theorem updateState_represented {memory n : ℕ} {s : State}

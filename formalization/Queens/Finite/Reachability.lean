@@ -5,14 +5,14 @@ import Mathlib.Algebra.BigOperators.Group.Finset.Basic
 /-!
 # Exact reachability of the checked invariant
 
-Proposition 17's predecessor witnesses have been checked separately in bounded
+Proposition 18's predecessor witnesses have been checked separately in bounded
 kernel reductions. Strong induction on their distances proves that every state
 is reached, and structural counting identifies the exact number of edges.
 -/
 
 namespace Queens.Finite
 
-/-- Proposition 17: every proposed predecessor witness checks successfully.
+/-- Proposition 18: every proposed predecessor witness checks successfully.
 The Lean kernel checks the recomputed transition and decreasing distance. -/
 theorem predecessors_checked : ∀ i : Fin Data.states.size, ParentCheck i := by
   intro i
@@ -38,7 +38,7 @@ private theorem reachable_of_decreasing_predecessors {α ι : Type}
         · exact (ih (distance parent) (by omega) parent rfl).tail hedge
   exact h (distance i) i rfl
 
-/-- Proposition 17: every entry in the checked table is actually reached from
+/-- Proposition 18: every entry in the checked table is actually reached from
 the initial state. Strictly decreasing witness distances justify the induction. -/
 theorem table_state_reachable (i : Fin Data.states.size) :
     Relation.ReflTransGen Step initialState Data.states[i] := by
@@ -58,7 +58,7 @@ theorem table_state_reachable (i : Fin Data.states.size) :
       · exact Or.inl hstart
       · exact Or.inr ⟨parent, hstep.1, hasStep_iff.mp hstep.2⟩
 
-/-- Proposition 17: table membership and reachability describe exactly the
+/-- Proposition 18: table membership and reachability describe exactly the
 same state set, rather than merely an over-approximation of the reached states. -/
 theorem certified_iff_reachable {s : State} :
     Certified s ↔ Relation.ReflTransGen Step initialState s := by
@@ -67,7 +67,7 @@ theorem certified_iff_reachable {s : State} :
     exact table_state_reachable i
   · exact reachable_certified
 
-/-- Proposition 17: the mathematical set of reached states is represented by
+/-- Proposition 18: the mathematical set of reached states is represented by
 the finite state table. -/
 theorem reachable_iff_mem_states {s : State} :
     Relation.ReflTransGen Step initialState s ↔ s ∈ Data.states.toList.toFinset := by
@@ -80,12 +80,12 @@ theorem reachable_iff_mem_states {s : State} :
     obtain ⟨i, hi, heq⟩ := Array.mem_iff_getElem.mp hm
     exact ⟨⟨i, hi⟩, heq⟩
 
-/-- Proposition 17: there are exactly 7014 reached states. The preceding
+/-- Proposition 18: there are exactly 7014 reached states. The preceding
 membership equivalence identifies this finite set with the actual graph reachability. -/
 theorem reached_state_count : Data.states.toList.toFinset.card = 7014 := by
   rw [List.toFinset_card_of_nodup states_nodup, Array.length_toList, states_size]
 
-/-- Proposition 17: the directed edge set of the reached state graph.
+/-- Proposition 18: the directed edge set of the reached state graph.
 Successors are sets, so multiple branches producing the same target count once. -/
 def reachedEdges : Finset (State × State) :=
   Data.states.toList.toFinset.biUnion fun source =>
@@ -93,7 +93,7 @@ def reachedEdges : Finset (State × State) :=
     | .error _ => ∅
     | .ok next => next.toFinset.image (fun target => (source, target))
 
-/-- Definition 14 and Proposition 17: the finite edge set contains exactly
+/-- Definition 15 and Proposition 18: the finite edge set contains exactly
 the calculated edges whose source is reachable from the initial state. -/
 theorem mem_reachedEdges {source target : State} :
     (source, target) ∈ reachedEdges ↔
@@ -113,7 +113,7 @@ theorem mem_reachedEdges {source target : State} :
     simp only [hn, Finset.mem_image, List.mem_toFinset, Prod.mk.injEq]
     exact ⟨target, ht, by simp⟩
 
-/-- Proposition 17: summing distinct successor counts counts the reached edges
+/-- Proposition 18: summing distinct successor counts counts the reached edges
 exactly once. Different source vertices give disjoint sets of ordered pairs. -/
 theorem reachedEdges_card_eq_stateEdgeCount : reachedEdges.card = stateEdgeCount := by
   unfold reachedEdges stateEdgeCount stateSuccessorCount
@@ -143,7 +143,7 @@ theorem reachedEdges_card_eq_stateEdgeCount : reachedEdges.card = stateEdgeCount
         obtain ⟨y, _, heq⟩ := heb
         exact hab (Prod.mk.inj heq).1.symm
 
-/-- Proposition 17: there are exactly 8327 directed edges in the reached graph,
+/-- Proposition 18: there are exactly 8327 directed edges in the reached graph,
 with reachability and edge semantics identified by `mem_reachedEdges`. -/
 theorem reached_edge_count : reachedEdges.card = 8327 := by
   rw [reachedEdges_card_eq_stateEdgeCount, state_edge_count]

@@ -140,7 +140,7 @@ phi^2 with bounded error, and the mean gaps in A275888 and A275889 are phi
 and phi^2. The limit of the proportion of upper queens stated in A275884
 follows from the main theorem.
 
-By the diagonal-coverage corollary, the signed diagonal sequences A065185
+By Corollary 19 (diagonal coverage), the signed diagonal sequences A065185
 (p(N) - N) and A276325 (the same diagonals in antidiagonal visitation
 order) each enumerate the integers exactly once. For the full array this
 is the case of the value 1 (value 0 in A274528) of the expectation that

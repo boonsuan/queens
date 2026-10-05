@@ -36,8 +36,8 @@ def queen_word(q: list[int]) -> list:
     """Return [None, sigma_1, ..., sigma_{len(q)-1}], the queen word of Section 4.2.
 
     sigma_i = 2 u_i + b_i, where u_i = 1 if column i has an upper queen and
-    b_i = 1 if row i has one. An upper queen in row i lies in a column below
-    i, so these symbols are determined by the columns 0, ..., len(q)-1.
+    b_i = 1 if row i has one. An upper queen in row i lies in a column less
+    than i, so these symbols are determined by the columns 0, ..., len(q)-1.
     Index 0 is unused, so that sigma[i] is sigma_i.
     """
     upper_rows = {y for x, y in enumerate(q) if y > x}
@@ -50,7 +50,7 @@ class Board(NamedTuple):
     n: int
     m: int      # least unused row
     d: int      # least unused lower-diagonal magnitude
-    kappa: int  # U(m-1): the number of upper queens in columns below m
+    kappa: int  # U(m-1): the number of upper queens in columns less than m
 
 
 def local_state(q: list[int], n: int, memory: int = 12,

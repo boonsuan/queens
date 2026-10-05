@@ -5,7 +5,7 @@ import Queens.Finite.FortyHistoryChecks
 /-!
 # The forty-symbol finite invariant
 
-Corollary 19 (Section 6.5) repeats the finite verification with forty-symbol
+Corollary 20 (Section 6.5 and Appendix A3) repeats the finite verification with forty-symbol
 histories. The proposed indexed edges are checked against **all** successors of
 `calculate`, so no branch can be discarded. Indices are checked before use, and
 the mathematical interface supplies genuine table witnesses independently of
@@ -25,7 +25,7 @@ set_option Elab.async false
 -- expanding the generated table would make definitional equality needlessly costly.
 attribute [local irreducible] state successorIndices calculate
 
-/-- Corollary 19: check record bounds, every index, and exact equality of the
+/-- Corollary 20: check record bounds, every index, and exact equality of the
 proposed and calculated successor sets. Failure of any branch rejects the vertex. -/
 def checkVertex (v : Vertex) : Bool :=
   decide (Condition (state v)) &&
@@ -34,7 +34,7 @@ def checkVertex (v : Vertex) : Bool :=
     | .error _ => false
     | .ok next => decide (next.toFinset = (successorStates v).toFinset)
 
-/-- Corollary 19: the finite data have exactly the reported numbers of
+/-- Corollary 20: the finite data have exactly the reported numbers of
 history vertices, history edges, state-table entries, and indexed state edges. -/
 theorem data_sizes :
     FortyData.historyGraph.length = 16876 ∧
@@ -46,7 +46,7 @@ theorem data_sizes :
     List.length_map, List.toList_toArray]
   decide +kernel
 
-/-- Corollary 19: the proposed forty-symbol history graph is well formed;
+/-- Corollary 20: the proposed forty-symbol history graph is well formed;
 every allowed output edge has a listed destination. -/
 theorem historyGraph_wellFormed : FortyData.historyGraph.WellFormed 40 := by
   exact checkHistoryGraph_sound historyGraph_checked
@@ -71,7 +71,7 @@ private theorem successor_lookup {v : Vertex} {j : ℕ}
   | none => simp only [heq, Option.isSome_none, Bool.false_eq_true] at hj'
   | some payload => exact ⟨payload, rfl⟩
 
-/-- Corollary 19: the seed before column 80 is vertex zero. -/
+/-- Corollary 20: the seed before column 80 is vertex zero. -/
 theorem initialState_eq_state_zero :
     FortyData.initialState = state ⟨0, by rw [data_sizes.2.2.1]; omega⟩ := by
   have h : (indexedLookup 0 FortyData.vertexTable).map Prod.fst =
@@ -80,13 +80,13 @@ theorem initialState_eq_state_zero :
   obtain ⟨hbound, heq⟩ := lookup_state_eq hlookup
   exact hstate.symm.trans heq.symm
 
-/-- Corollary 19: an indexed graph state satisfies Condition 15. -/
+/-- Corollary 20: an indexed graph state satisfies Condition 16. -/
 theorem state_condition (v : Vertex) : Condition (state v) := by
   have h := vertex_checked v
   simp only [checkVertexEntry, Bool.and_eq_true_iff] at h
   exact of_decide_eq_true h.1.1
 
-/-- Corollary 19: every proposed successor index is in range. -/
+/-- Corollary 20: every proposed successor index is in range. -/
 theorem successorIndex_lt {v : Vertex} {j : ℕ} (hj : j ∈ successorIndices v) :
     j < FortyData.states.size := by
   obtain ⟨payload, hlookup⟩ := successor_lookup hj
@@ -106,7 +106,7 @@ private theorem mem_fastSuccessorStates_vertex_iff {v : Vertex} {t : State} :
     obtain ⟨hwbound, hstate⟩ := lookup_state_eq hlookup
     exact ⟨w.val, hw, payload, hlookup, hstate.symm.trans heq⟩
 
-/-- Corollary 19: successful indexed adjacency identifies exactly the states
+/-- Corollary 20: successful indexed adjacency identifies exactly the states
 in the proposed successor list, including a valid index witness. -/
 theorem mem_successorStates_iff {v : Vertex} {t : State} :
     t ∈ successorStates v ↔
@@ -149,7 +149,7 @@ private theorem checked_result_of_eq {result : Except Failure (List State)}
   rw [hresult]
   exact decide_eq_true hset
 
-/-- Corollary 19: all branches terminate, and their successor states are
+/-- Corollary 20: all branches terminate, and their successor states are
 exactly the indexed outgoing edges. This is the interface used to lift the
 actual board to an indexed path before contracting runs and gaps. -/
 theorem calculated_successors (v : Vertex) :
@@ -164,7 +164,7 @@ theorem calculated_successors (v : Vertex) :
   rw [← List.mem_toFinset, hset, List.mem_toFinset,
     mem_fastSuccessorStates_vertex_iff]
 
-/-- Corollary 19: every public vertex passes the complete local calculation,
+/-- Corollary 20: every public vertex passes the complete local calculation,
 with exactly the proposed adjacency set. This follows from the bounded kernel
 checks through the proved table-index correspondence. -/
 theorem certificate_checked (v : Vertex) : checkVertex v = true := by
@@ -179,20 +179,20 @@ theorem certificate_checked (v : Vertex) : checkVertex v = true := by
     ext t
     simpa only [List.mem_toFinset, mem_successorStates_iff] using hexact t
 
-/-- Corollary 19: table membership is the finite invariant underlying the
+/-- Corollary 20: table membership is the finite invariant underlying the
 forty-symbol verification. -/
 def Certified (s : State) : Prop := ∃ v : Vertex, state v = s
 
-/-- Corollary 19: the actual-prefix starting record belongs to the invariant. -/
+/-- Corollary 20: the actual-prefix starting record belongs to the invariant. -/
 theorem initialState_certified : Certified FortyData.initialState :=
   ⟨⟨0, by rw [data_sizes.2.2.1]; omega⟩, initialState_eq_state_zero.symm⟩
 
-/-- Corollary 19: every state in the finite invariant satisfies Condition 15. -/
+/-- Corollary 20: every state in the finite invariant satisfies Condition 16. -/
 theorem certified_condition {s : State} (hs : Certified s) : Condition s := by
   obtain ⟨v, rfl⟩ := hs
   exact state_condition v
 
-/-- Corollary 19: every calculated successor of a certified state is certified,
+/-- Corollary 20: every calculated successor of a certified state is certified,
 and every branch of its calculation succeeds. -/
 theorem certified_successors {s : State} (hs : Certified s) :
     ∃ next, calculate FortyData.historyGraph s 40 = .ok next ∧

@@ -6,7 +6,7 @@ import Queens.Finite.Branching
 /-!
 # Requests along the actual queen word
 
-Lemma 16 answers requests with already determined symbols. The history graph
+Lemma 17 answers requests with already determined symbols. The history graph
 admits these answers because the earlier actual word follows the graph. This file
 connects that mathematical fact to the executable `extendBy` and `extendQueue`.
 -/
@@ -14,7 +14,7 @@ connects that mathematical fact to the executable `extendBy` and `extendQueue`.
 namespace Queens
 
 /-- Every symbol in an actual word segment lies in the four-symbol alphabet
-(Definition 9). -/
+(Definition 10). -/
 theorem wordSegment_symbols_lt_four (start length : ℕ) :
     ∀ symbol ∈ wordSegment start length, symbol < 4 := by
   intro symbol hsymbol
@@ -51,7 +51,7 @@ theorem destination_inputHistoryAt {memory : ℕ} (start : ℕ) (hstart : memory
   have h := fold_destination_wordSegment start 1 hstart
   simpa [wordSegment] using h
 
-/-- The history-window convention in Definition 11 agrees with the input
+/-- The history-window convention in Definition 12 agrees with the input
 history immediately before the next symbol. -/
 theorem historyWindow_previous {memory : ℕ} {start : ℕ} (hstart : 0 < start) :
     Finite.historyWindow (memory := memory) queenSymbol (start - 1) =
@@ -60,7 +60,7 @@ theorem historyWindow_previous {memory : ℕ} {start : ℕ} (hstart : 0 < start)
     Nat.sub_add_cancel hstart]
 
 /-- The actual word supplies a permitted path for every requested segment
-whose symbols are already determined. This is Lemma 16(i)'s graph-path argument. -/
+whose symbols are already determined. This is Lemma 17(i)'s graph-path argument. -/
 theorem permittedPath_wordSegment {memory : ℕ} {graph : Finite.HistoryGraph} {start length last : ℕ}
     (hstart : memory < start) (hend : start + length ≤ last + 1)
     (hword : graph.FollowsThrough queenSymbol last (memory := memory)) :
@@ -89,7 +89,7 @@ theorem permittedPath_wordSegment {memory : ℕ} {graph : Finite.HistoryGraph} {
 
 /-- If `Extend` succeeds, its output includes the actual extended queue.
 Every permitted answer is retained by the generic branching calculation, so
-the true board branch cannot disappear (Lemma 16(i)). -/
+the true board branch cannot disappear (Lemma 17(i)). -/
 theorem extendBy_contains_actual {memory : ℕ} {graph : Finite.HistoryGraph}
     {start length extra last : ℕ} {out : List (List ℕ)}
     (hstart : memory < start) (hend : start + (length + extra) ≤ last + 1)
@@ -122,7 +122,7 @@ theorem extendQueue_contains_actual {memory : ℕ} {graph : Finite.HistoryGraph}
 
 /-- The last digit of a represented output history is the actual previous
 queen symbol. This links local-state graph labels to the sequence in
-Corollary 19's path-contraction argument. -/
+Corollary 20's path-contraction argument. -/
 theorem StateRepresented.output_last {memory n : ℕ} {s : Finite.State}
     (hrep : StateRepresented n s memory) (hmemory : 0 < memory)
     (hn : memory ≤ n) : s.output % 4 = queenSymbol (n - 1) := by

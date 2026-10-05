@@ -50,7 +50,7 @@ theorem q_eq_seedRow {n : ℕ} (hn : n < 30) : q n = seedRow n := by
       rw [hprev] at havailable
       exact hspec.2 ⟨q n, hsmall⟩ havailable
 
-/-- Definition 9 evaluated on the first thirty columns, independently of the
+/-- Definition 10 evaluated on the first thirty columns, independently of the
 local calculation. -/
 def seedSymbol (n : ℕ) : ℕ :=
   2 * (if n < seedRow n then 1 else 0) +

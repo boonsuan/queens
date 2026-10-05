@@ -34,7 +34,7 @@ def main() -> None:
     # keeps independent large checks from competing for memory in a cold build.
     for module in (
         "Certificate",
-        "SharpBounds",
+        "WindowCertificate",
         "StateCounts",
         "Reachability",
         "FortyHistoryChecks",

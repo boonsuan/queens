@@ -1,9 +1,12 @@
 # OEIS consequences (Section 6.5)
 
 These programs check the statements about related OEIS sequences in
-Section 6.5 of the paper: the corollary "Column runs and gaps" and the
-statements that follow it about the gap sequence A275888. Appendix A
-describes the same checks. None of this is needed for the main theorem.
+Section 6.5 of the paper: Corollary 20 (column runs and gaps) and the
+statements that follow it about the gap sequence A275888. With the same
+refined graph, they also count exactly how much of the twelve-symbol history
+graph and state graph the actual queens use (Sections 4.3 and 4.5).
+Appendix A3 describes these checks. None of this is needed for the main
+theorem.
 
 Every program is plain Python (3.10 or later, standard library only) and
 builds on the verification programs in `../verification`: the calculation
@@ -22,18 +25,20 @@ python oeis/run_all.py
 or, from this directory, `python run_all.py`. This runs every check below
 in order, writes its results to `results/`, and prints one `PASS` line per
 verified statement, ending with `ALL CHECKS PASSED`. A failed check stops
-with `FAIL` and a message. It takes about 40 seconds, most of it
-constructing the forty-symbol history graph.
+with `FAIL` and a message. It takes about a minute and a half, most of it
+constructing the forty-symbol history graph and following the actual queens
+for `actual_counts.py`.
 
 The programs can also be run one at a time, in either directory:
 
 | Command | Checks | Time |
 |---|---|---|
 | `python graphs.py` | Constructs the forty-symbol history graph and explores both state graphs | 30 s |
-| `python runs_and_gaps.py` | Upper bounds of the corollary "Column runs and gaps"; forbidden gap factors | 3 s |
+| `python runs_and_gaps.py` | Upper bounds of Corollary 20; forbidden gap factors | 3 s |
 | `python return_words.py` | The 156 return words to 3; the 63 faithful words | 3 s |
 | `python four_gaps.py` | Minimum distance 71 between consecutive 4s; its unique fill | 3 s |
 | `python witnesses.py` | Occurrence witnesses in the actual queens | 10 s |
+| `python actual_counts.py` | Exactly 1824 windows, 2195 history edges, 4749 states, and 5207 state edges of the twelve-symbol graphs are actual | 50 s |
 
 Each program constructs the forty-symbol history graph if
 `results/history-40.json` is missing (another 25 s), and otherwise reuses
@@ -78,7 +83,7 @@ actual process is a walk in it from column 80 on. Two points need checking.
   sigma_51 ... sigma_79, and the output history sigma_40 ... sigma_79, so
   every stored index is positive. The word sigma_1 ... sigma_79 follows the
   graph, and every lower queen before column 80 has |d_j - j| <= 4.
-* **The lemma of Section 5 with longer histories.** The only part of its proof that
+* **Lemma 17 with longer histories.** The only part of its proof that
   depends on the history length concerns information left out of the
   records. An upper column omitted from a forty-symbol history has offset
   at most -41, which is further in the past than the offsets at most -13
@@ -92,6 +97,34 @@ actual process is a walk in it from column 80 on. Two points need checking.
 
 The extra symbols only strengthen the constraints from the past; they do
 not widen the range of fresh inputs.
+
+### How much of the twelve-symbol graphs is actual
+
+The twelve-symbol graphs allow more than the board produces. `actual_counts.py`
+finds exactly which of their parts are actual: the windows
+sigma_{i-11} ... sigma_i of the queen word, the edges between consecutive
+windows, the actual states before columns n >= 30, and the transitions
+between consecutive ones. Each count is the size of a set bounded from both
+sides.
+
+* **From below**, by the ones that occur in the first 1600000 columns.
+* **From above**, by the forty-symbol graphs. From column 80 on, keeping
+  the last twelve symbols of each forty-symbol window, edge, and state gives
+  the actual twelve-symbol one. For states this needs one more step: The
+  forty-symbol state before column 80 holds the whole queue from m to
+  sigma_79, while the actual twelve-symbol state, followed from column 30,
+  holds a shorter one. Both actual branches are followed until their
+  states agree after dropping the older symbols (before column 128), and
+  from then on they agree in every column, since they read the same
+  symbols. So the actual twelve-symbol states from there on are images of
+  forty-symbol states reachable from the actual one there. Windows,
+  edges, and states before these points are added directly.
+
+The two bounds agree: Exactly 1824 of the 2092 vertices and 2195 of the
+2603 edges of the history graph, and exactly 4749 of the 7014 states and
+5207 of the 8327 edges of the state graph, are actual. Every one occurs
+before column 1600000; the last state to appear first does so before
+column 1501457.
 
 ### Derived graphs
 
@@ -142,7 +175,7 @@ but they do not form a maximal run. With the twelve-symbol graph the same
 calculation gives L_1 = {1, ..., 11}, so it cannot exclude 10.
 
 *Witnesses and the start* (`witnesses.py`). In the first 20000 queens,
-every value in the table of the corollary "Column runs and gaps" occurs, and each L_c is attained
+every value in the table of Corollary 20 occurs, and each L_c is attained
 by runs of c's. The origin, which these OEIS sequences count as an upper
 column, is covered by the same direct check. A maximal run of equal terms
 of A275885 is covered by the run graph when the edge of the unequal term
@@ -201,7 +234,7 @@ length gives a single fill, both 4s included:
     412111311132211131113221211223111122311112321113113112321113121212112214
 
 *Witnesses and the start* (`witnesses.py`). A million queens, 618034 terms
-of g, are generated by a program that uses the lemma of Section 2 and agrees with the
+of g, are generated by a program that uses Lemma 3 and agrees with the
 bitboard computation on its first 200000 queens. Every catalogue word
 occurs, the last one (`11122211221223`) at indices 108002 to 108015. Each
 of the 93 words that are not faithful has two different successors, all
@@ -241,10 +274,11 @@ OEIS entries one by one.
 |---|---|
 | `run_all.py` | Runs every check and prints the summary |
 | `graphs.py` | The two state graphs, the start before column 80, the gap graph, and the run graph |
-| `runs_and_gaps.py` | Upper bounds of the corollary "Column runs and gaps" and the forbidden gap factors |
+| `runs_and_gaps.py` | Upper bounds of Corollary 20 and the forbidden gap factors |
 | `return_words.py` | The return-word language, the catalogue comparison, and the faithful words |
 | `four_gaps.py` | Minimum distance between consecutive 4s, its fill, and the cycle avoiding 4 |
 | `witnesses.py` | Two generators of actual queens and all occurrence witnesses |
+| `actual_counts.py` | Which vertices, edges, and states of the twelve-symbol graphs are actual |
 | `a275888-return-words.txt` | Input: the 156 return words listed in the note linked from A275888 |
 | `AUDIT.md` | What is proved, attained, and open for each related OEIS entry |
 

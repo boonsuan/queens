@@ -155,7 +155,7 @@ theorem zero_not_mem_diagonalOffsets (n : ℕ) : 0 ∉ diagonalOffsets n := by
 
 /-- The five attack tests for a lower candidate in Sections 4.1–4.4.
 The last test still ranges over actual upper queens; restricting it to the
-retained history and queue is a separate sufficiency argument in Lemma 16. -/
+retained history and queue is a separate sufficiency argument in Lemma 17. -/
 def LowerCandidateClear (n r : ℕ) : Prop :=
   r ∉ rowOffsets n ∧
   (window n - (r : ℤ)).toNat ∉ diagonalOffsets n ∧
@@ -165,7 +165,7 @@ def LowerCandidateClear (n r : ℕ) : Prop :=
 
 /-- A lower candidate is available exactly when all five local attack tests
 pass. This includes the origin and the impossibility of an upper queen
-attacking a lower square along a diagonal, as required by Lemma 16. -/
+attacking a lower square along a diagonal, as required by Lemma 17. -/
 theorem available_candidate_iff {n r : ℕ} (hn : 0 < n) (hr : (r : ℤ) ≤ window n) :
     Available n (rowReference n + r) (fun i => q i.val) ↔ LowerCandidateClear n r := by
   have hrow := candidate_row_lt hr
@@ -223,7 +223,7 @@ theorem available_candidate_iff {n r : ℕ} (hn : 0 < n) (hr : (r : ℤ) ≤ win
           exact hupperAnti ⟨i.val, hin, hupper, by omega⟩
 
 /-- The actual lower choice is precisely the first candidate passing the
-five tests. This proves the candidate-selection part of Lemma 16 without
+five tests. This proves the candidate-selection part of Lemma 17 without
 assuming that the finite calculation already represents the greedy board. -/
 theorem q_eq_candidate_iff {n r : ℕ} (hn : 0 < n) (hr : (r : ℤ) ≤ window n) :
     q n = rowReference n + r ↔

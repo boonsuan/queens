@@ -4,8 +4,8 @@
 build/scan_bounds checks, for the one-based coordinates c = n + 1 and
 s(c) = q_n + 1 with 1 <= c <= COUNT, that every queen lies in
 [c/phi - 3, c/phi + 5] or [c*phi - 2, c*phi + 1], and records the extreme
-deviations (see the remark on 1-indexed coordinates in Section 3).  This
-script runs it and writes three files:
+deviations, which Section 6.6 of the paper quotes (Theorem 2 proves the
+ranges for every c).  This script runs it and writes three files:
 
   PREFIX.json               the scanner's final JSON record
   PREFIX-progress.log       one JSON record every --progress-every queens

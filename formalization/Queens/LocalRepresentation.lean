@@ -9,12 +9,12 @@ The finite calculation stores `R`, `D`, and `A` as bit masks, whereas the
 actual board records are finite sets. `RecordsRepresented` states precisely
 the agreement of these five numerical/set records. It intentionally makes
 no assertion about the three word fields; those need additional semantics
-in the exactness theorem (Section 5, Lemma 16).
+in the exactness theorem (Section 5, Lemma 17).
 -/
 
 namespace Queens
 
-/-- Agreement of the five numerical and set records of Definition 10 with
+/-- Agreement of the five numerical and set records of Definition 11 with
 the actual board before column `n`. Word histories and the queue are separate
 parts of the full local-state interpretation. -/
 structure RecordsRepresented (n : ℕ) (s : Finite.State) : Prop where
@@ -29,7 +29,7 @@ structure RecordsRepresented (n : ℕ) (s : Finite.State) : Prop where
   /-- The antidiagonal bit mask represents precisely the actual retained offsets. -/
   antidiagonalOffsets_eq : antidiagonalOffsets n = Finite.offsets s.A
 
-/-- Condition 15 on a faithfully represented finite state gives the actual
+/-- Condition 16 on a faithfully represented finite state gives the actual
 record bounds needed to extract the diagonal discrepancy. -/
 theorem RecordsRepresented.diagonalRecordBounds {n : ℕ} {s : Finite.State}
     (hrep : RecordsRepresented n s) (hcondition : Finite.Condition s) :
@@ -40,7 +40,7 @@ theorem RecordsRepresented.diagonalRecordBounds {n : ℕ} {s : Finite.State}
   · rw [hrep.diagonalOffsets_eq]
     exact hcondition.offsets_subset.2
 
-/-- A represented finite state satisfying Condition 15 proves the discrepancy
+/-- A represented finite state satisfying Condition 16 proves the discrepancy
 bound for the actual lower queen in that column (Section 6.4). -/
 theorem discrepancy_of_represented_condition {n : ℕ} {s : Finite.State}
     (hrep : RecordsRepresented n s) (hcondition : Finite.Condition s)
@@ -97,7 +97,7 @@ theorem rowBit_queenSymbol (n : ℕ) : Finite.rowBit (queenSymbol n) = upperRowB
 
 /-- Full interpretation of a local state before column `n`: five actual
 records, two actual histories of the specified length, and a nonempty actual queue.
-The queue ends before the next column, as required in Lemma 16. -/
+The queue ends before the next column, as required in Lemma 17. -/
 structure StateRepresented (n : ℕ) (s : Finite.State)
     (memory : ℕ := Finite.historyLength) : Prop extends RecordsRepresented n s where
   /-- The input history starts at a nonnegative absolute index. -/
@@ -110,7 +110,7 @@ structure StateRepresented (n : ℕ) (s : Finite.State)
   /-- The output history contains precisely the stored symbols preceding `n`. -/
   output_eq : Finite.encode (wordSegment (n - memory)
     memory) = s.output
-  /-- A local queue is nonempty (Definition 10). -/
+  /-- A local queue is nonempty (Definition 11). -/
   queue_nonempty : 0 < s.queue.length
   /-- Every queued symbol is determined by the already placed queens. -/
   queue_before_column : rowReference n + s.queue.length ≤ n

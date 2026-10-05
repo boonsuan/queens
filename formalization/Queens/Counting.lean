@@ -3,7 +3,7 @@ import Queens.GoldenRatio
 /-!
 # The counting recurrence
 
-This file formalizes Lemma 7 of Section 3. Its hypotheses describe the
+This file formalizes Lemma 8 of Section 3. Its hypotheses describe the
 lower-column estimate, the fact that each column increments the upper
 count by at most one, and the bracketing of a column by consecutive lower
 columns. These facts must be supplied by the combinatorial construction.
@@ -11,7 +11,7 @@ columns. These facts must be supplied by the combinatorial construction.
 
 namespace Queens
 
-/-- Lemma 7 in integer arithmetic. A column estimate at consecutive lower
+/-- Lemma 8 in integer arithmetic. A column estimate at consecutive lower
 columns bounds the recurrence defect. Keeping the calculation in `ℤ`
 retains the one-unit improvement of a strict integer endpoint bound. -/
 theorem counting_recurrence_int (U x : ℕ → ℕ) (C : ℕ)
@@ -46,7 +46,7 @@ theorem counting_recurrence_int (U x : ℕ → ℕ) (C : ℕ)
     apply abs_le.mpr
     constructor <;> omega
 
-/-- The real-valued formulation of Lemma 7, directly usable by
+/-- The real-valued formulation of Lemma 8, directly usable by
 `count_error_lt`. All combinatorial assumptions remain explicit. -/
 theorem counting_recurrence (U x : ℕ → ℕ) (C : ℕ)
     (hzero : U 0 = 0) (hbounded : ∀ n, U n ≤ n)

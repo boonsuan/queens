@@ -4,7 +4,7 @@ import Queens.RunsCoverage
 /-!
 # Every term belongs to a finite repeated run
 
-Corollary 19's A275887 records maximal repetitions in `lowerRunLength` (A275885).
+Corollary 20's A275887 records maximal repetitions in `lowerRunLength` (A275885).
 The exclusion of twelve consecutive equal terms ensures that this description
 accounts for every term, with no infinite constant tail. Applying generic run
 uniqueness identifies its finite maximal run.
@@ -12,7 +12,7 @@ uniqueness identifies its finite maximal run.
 
 namespace Queens
 
-/-- **Corollary 19, A275887 coverage:** every term of A275885 belongs to a
+/-- **Corollary 20, A275887 coverage:** every term of A275885 belongs to a
 unique finite maximal repetition of that value. Thus the exact range theorem
 for repeated run lengths describes the entire sequence of repetitions. -/
 theorem existsUnique_repeated_lower_run_contains (n : ℕ) :

@@ -3,7 +3,7 @@ import Queens.Finite.Local
 /-!
 # Kernel-efficient checking of history graphs
 
-Definition 11 requires unique, bounded vertices and closure under every allowed
+Definition 12 requires unique, bounded vertices and closure under every allowed
 symbol. Strict subtree bounds establish uniqueness in one tree traversal. Each
 edge destination is found by the checked lookup operation, avoiding quadratic
 list-membership checks. These optimizations change only evaluation cost: the
@@ -12,7 +12,7 @@ result remains the original mathematical well-formedness predicate.
 
 namespace Queens.Finite
 
-/-- Definition 11: a well-formed finite presentation has unique vertices,
+/-- Definition 12: a well-formed finite presentation has unique vertices,
 valid base-four and edge-mask encodings, and contains every edge destination. -/
 def HistoryGraph.WellFormed (graph : HistoryGraph) (memory : ℕ := historyLength) : Prop :=
   (graph.map Prod.fst).Nodup ∧ ∀ entry ∈ graph,
@@ -20,7 +20,7 @@ def HistoryGraph.WellFormed (graph : HistoryGraph) (memory : ℕ := historyLengt
       ∀ symbol : Fin 4, hasOffset entry.2 symbol.val = true →
         destination entry.1 symbol.val memory ∈ graph.map Prod.fst
 
-/-- Definition 11: the mathematical well-formedness predicate is decidable.
+/-- Definition 12: the mathematical well-formedness predicate is decidable.
 Large certificates use the verified sufficient check below for efficiency. -/
 instance (graph : HistoryGraph) (memory : ℕ) : Decidable (graph.WellFormed memory) :=
   inferInstanceAs (Decidable (_ ∧ _))
@@ -98,19 +98,19 @@ theorem checkHistoryEntry_sound {graph : HistoryGraph} {memory : ℕ} {entry : �
   refine ⟨of_decide_eq_true hmask, ?_⟩
   intro symbol hallowed
   have hedge := List.all_eq_true.mp hedges symbol.val (List.mem_range.mpr symbol.isLt)
-  simp only [hallowed, if_true] at hedge
+  simp only [hallowed, ite_true] at hedge
   cases hlookup : graph.lookup (destination entry.1 symbol.val memory) with
   | none => simp [hlookup] at hedge
   | some mask =>
     exact List.mem_map.mpr ⟨(_, mask), graph.lookup_mem hlookup, rfl⟩
 
-/-- Definition 11: an efficient executable sufficient check for the full
+/-- Definition 12: an efficient executable sufficient check for the full
 well-formedness predicate, suitable for reduction by the Lean kernel. -/
 def checkHistoryGraph (graph : HistoryGraph) (memory : ℕ := historyLength) : Bool :=
   checkHistoryBounds 0 (4 ^ memory) graph.tree &&
     historyAll (checkHistoryEntry graph memory) graph.tree
 
-/-- The optimized tree checker establishes the original Definition 11,
+/-- The optimized tree checker establishes the original Definition 12,
 including unique vertices and closure under every allowed output symbol. -/
 theorem checkHistoryGraph_sound {graph : HistoryGraph} {memory : ℕ}
     (h : checkHistoryGraph graph memory = true) : graph.WellFormed memory := by
@@ -121,7 +121,7 @@ theorem checkHistoryGraph_sound {graph : HistoryGraph} {memory : ℕ}
   exact ⟨(hbound entry hentry).2,
     checkHistoryEntry_sound (historyAll_eq_true.mp hedges entry hentry)⟩
 
-/-- Definition 11: finding any mask proves that a vertex is listed. Finite
+/-- Definition 12: finding any mask proves that a vertex is listed. Finite
 prefix checks use this efficient sufficient test instead of linear membership. -/
 theorem HistoryGraph.mem_of_lookup_isSome {graph : HistoryGraph} {vertex : ℕ}
     (h : (graph.lookup vertex).isSome = true) : vertex ∈ graph.map Prod.fst := by

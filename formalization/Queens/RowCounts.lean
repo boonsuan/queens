@@ -4,11 +4,11 @@ import Mathlib.Order.Interval.Finset.Nat
 /-!
 # Counting upper rows from a retained window
 
-Proposition 13 (Section 4.4) computes the number of upper rows below a threshold
+Proposition 14 (Section 4.4) computes the number of upper rows below a threshold
 by adjusting the upper-column count at a reference column. This file proves the
 finite-set identity on the actual board. The hypotheses say precisely that
 omitted old sources lie below the threshold and omitted future sources lie above it.
-`LocalGeometry` supplies those exclusions under the hypotheses of Lemma 16.
+`LocalGeometry` supplies those exclusions under the hypotheses of Lemma 17.
 -/
 
 namespace Queens
@@ -18,12 +18,12 @@ Their cardinality is the upper-row count `B(T)` in Section 4.4. -/
 noncomputable def upperRowSources (T : ℕ) : Finset ℕ :=
   (Finset.range (T + 1)).filter (fun i => i < q i ∧ q i ≤ T)
 
-/-- The upper-row count `B(T)` in Proposition 13. Distinct sources occupy
+/-- The upper-row count `B(T)` in Proposition 14. Distinct sources occupy
 distinct rows by the nonattacking condition. -/
 noncomputable def upperRowCount (T : ℕ) : ℕ := (upperRowSources T).card
 
 /-- Membership in the upper-row source set, without the redundant column bound.
-This is the finite counting interpretation of `B(T)` in Proposition 13. -/
+This is the finite counting interpretation of `B(T)` in Proposition 14. -/
 theorem mem_upperRowSources {i T : ℕ} :
     i ∈ upperRowSources T ↔ i < q i ∧ q i ≤ T := by
   simp only [upperRowSources, Finset.mem_filter, Finset.mem_range]
@@ -44,7 +44,7 @@ private lemma card_sub_card_eq_differences (S T : Finset ℕ) :
   rw [Finset.inter_comm T S] at hT
   omega
 
-/-- **Proposition 13 (upper-row count)**, expressed using absolute retained
+/-- **Proposition 14 (upper-row count)**, expressed using absolute retained
 columns `[a,b)`. Relative offsets turn the two cardinalities into `J(T-m-κ)`.
 The old- and future-source hypotheses are exactly the two exclusions required
 by the paper's proposition. -/
@@ -127,7 +127,7 @@ theorem upperRowCount_eq_previous_add_bit {n : ℕ} (hn : 0 < n) :
     simp [upperRowCount, heq, hbit]
 
 /-- The output row bit is the signed difference between consecutive upper-row
-counts, the final identity in Proposition 13. -/
+counts, the final identity in Proposition 14. -/
 theorem upperRowBit_eq_count_difference {n : ℕ} (hn : 0 < n) :
     (upperRowBit n : ℤ) = (upperRowCount n : ℤ) - (upperRowCount (n - 1) : ℤ) := by
   have h := upperRowCount_eq_previous_add_bit hn

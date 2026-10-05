@@ -14,7 +14,7 @@ namespace Queens.Finite
 
 /-- If a branching traversal succeeds, each visited input has a successful
 result, and every result of that input belongs to the combined output.
-This is the no-dropped-branches property used in Lemma 16. -/
+This is the no-dropped-branches property used in Lemma 17. -/
 theorem allBranches_branch {α β : Type} {xs : List α}
     {f : α → Except Failure (List β)} {out : List β}
     (hok : allBranches xs f = .ok out) {x : α} (hx : x ∈ xs) :
@@ -36,9 +36,9 @@ theorem allBranches_branch {α β : Type} {xs : List α}
         · obtain ⟨ys, hys, hall⟩ := ih hs hx
           exact ⟨ys, hys, fun y hy => List.mem_append_right _ (hall y hy)⟩
 
-/-- Definition 11: a finite list of permitted labels starting at a specified
+/-- Definition 12: a finite list of permitted labels starting at a specified
 encoded history. The memory parameter also covers the forty-symbol graph used
-in Corollary 19. This is a local path, without an assumption about the board. -/
+in Corollary 20. This is a local path, without an assumption about the board. -/
 def PermittedPath (graph : HistoryGraph) (vertex : ℕ) (symbols : List ℕ)
     (memory : ℕ := historyLength) : Prop :=
   match symbols with
@@ -49,7 +49,7 @@ def PermittedPath (graph : HistoryGraph) (vertex : ℕ) (symbols : List ℕ)
           (memory := memory)
 
 /-- A successful `Extend` retains any prescribed permitted suffix of the
-requested length. This is the operational input-path part of Lemma 16. -/
+requested length. This is the operational input-path part of Lemma 17. -/
 theorem extendBy_contains_path {memory : ℕ} {graph : HistoryGraph} {input : ℕ}
     {suffix queue : List ℕ} {out : List (List ℕ)}
     (hpath : PermittedPath graph (queue.foldl (destination (memory := memory)) input)
@@ -96,5 +96,22 @@ theorem calculate_decompose {memory : ℕ} {graph : HistoryGraph} {s : State} {o
     | ok choices =>
       refine ⟨queues, choices, rfl, hchoose, ?_⟩
       simpa [calculate, hextend, hchoose, Bind.bind, Except.bind] using hok
+
+/-- Algorithm 1, candidate phase: the queen choices of all branches, after the
+preliminary extension of the queue. Failure propagates as in `calculate`. -/
+def calculateChoices (graph : HistoryGraph) (s : State) :
+    Except Failure (List Choice) := do
+  let queues ← extendQueue graph s.input s.queue s.z
+  allBranches queues fun queue => chooseFrom graph s (s.w + 1).toNat 0 queue
+
+/-- The candidate phase of a successful calculation is the successful
+`calculateChoices`, so its choices include every choice of every branch. -/
+theorem calculateChoices_eq {graph : HistoryGraph} {s : State} {queues : List (List ℕ)}
+    {choices : List Choice}
+    (hextend : extendQueue graph s.input s.queue s.z = .ok queues)
+    (hchoose : allBranches queues (fun queue => chooseFrom graph s (s.w + 1).toNat 0 queue) =
+      .ok choices) :
+    calculateChoices graph s = .ok choices := by
+  simpa [calculateChoices, hextend, Bind.bind, Except.bind] using hchoose
 
 end Queens.Finite

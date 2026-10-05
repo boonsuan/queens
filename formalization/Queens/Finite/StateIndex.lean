@@ -4,7 +4,7 @@ import Queens.Finite.IndexedTree
 /-!
 # Kernel-efficient state lookup
 
-Proposition 17's state table is indexed in two ways by the same proposed binary
+Proposition 18's state table is indexed in two ways by the same proposed binary
 tree: by state value for successor membership, and by natural-number position
 for auxiliary witnesses. Both lookups check equality before returning a result.
 Their soundness therefore requires no assumption about ordering or balance.
@@ -15,7 +15,7 @@ namespace Queens.Finite
 /-- Section 6.3: in-order entries of a proposed indexed state table. -/
 abbrev stateIndexEntries : BinaryTree (ℕ × State) → List (ℕ × State) := indexedEntries
 
-/-- Proposition 17: find a state's proposed index, checking equality at the
+/-- Proposition 18: find a state's proposed index, checking equality at the
 returned node. A malformed search layout can only cause lookup failure. -/
 def lookupState (s : State) : BinaryTree (ℕ × State) → Option ℕ
   | .nil => none
@@ -23,7 +23,7 @@ def lookupState (s : State) : BinaryTree (ℕ × State) → Option ℕ
       if s = entry.2 then some entry.1
       else if compare s entry.2 = .lt then lookupState s left else lookupState s right
 
-/-- Proposition 17: lookup by natural-number index, with a checked equality
+/-- Proposition 18: lookup by natural-number index, with a checked equality
 at the returned node. -/
 abbrev lookupStateIndex (i : ℕ) : BinaryTree (ℕ × State) → Option State := indexedLookup i
 

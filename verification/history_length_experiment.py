@@ -12,7 +12,8 @@ tests can involve the column bits of columns m-4, ..., m-1, so the
 input history must contain them.
 
 Result: lengths 4 through 11 fail and 12, 13, 14 close. The results are
-written to results/history-length-experiment.json.
+written to results/history-length-experiment.json, and the program exits
+with an error if they differ from this.
 """
 from __future__ import annotations
 
@@ -47,6 +48,10 @@ def main() -> None:
     output = HERE / 'results' / 'history-length-experiment.json'
     output.parent.mkdir(exist_ok=True)
     output.write_text(json.dumps(rows, indent=2) + '\n', newline='\n')
+    closing = [row['memory'] for row in rows if row['result'] == 'closes']
+    print('lengths that close:', closing)
+    if closing != [12, 13, 14]:
+        raise SystemExit('expected lengths 12, 13, and 14 to close and no others')
 
 
 if __name__ == '__main__':

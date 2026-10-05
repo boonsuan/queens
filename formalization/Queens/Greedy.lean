@@ -11,7 +11,7 @@ import Mathlib.Tactic.SplitIfs
 
 This file defines the sequence from the introduction by choosing the least row
 unattacked by earlier queens. It establishes the elementary nonattacking facts
-and the upper-diagonal identity of Section 2, Lemma 2.
+and the upper-diagonal identity of Section 2, Lemma 3.
 -/
 
 namespace Queens
@@ -64,7 +64,7 @@ theorem q_safe {i n : ℕ} (hi : i < n) :
   q_available n ⟨i, hi⟩
 
 /-- Distinct columns have distinct queen rows; the injectivity part of
-Section 2, Lemma 3. -/
+Section 2, Lemma 4. -/
 theorem q_injective : Function.Injective q := by
   intro m n h
   rcases lt_trichotomy m n with hlt | heq | hgt
@@ -123,7 +123,7 @@ theorem upperCount_mono : Monotone upperCount := by
   exact Finset.filter_subset_filter _ (Finset.range_mono (by omega))
 
 /-- Every positive rank up to the upper count is attained by an upper
-queen. This turns the count formulation of Lemma 2 into the paper's
+queen. This turns the count formulation of Lemma 3 into the paper's
 `k`th-upper-queen formulation. -/
 theorem upperCount_rank_exists {n k : ℕ} (hk : 0 < k)
     (hkn : k ≤ upperCount n) :
@@ -136,13 +136,13 @@ theorem upperCount_rank_exists {n k : ℕ} (hk : 0 < k)
       exact ⟨i, by omega, hi, hcount⟩
     · have hupper : n + 1 < q (n + 1) := by
         by_contra h
-        rw [upperCount_succ, if_neg h, Nat.add_zero] at hkn
+        rw [upperCount_succ, ite_eq_right h, Nat.add_zero] at hkn
         exact hprev hkn
       have hcount := upperCount_succ n
-      rw [if_pos hupper] at hcount
+      rw [ite_eq_left hupper] at hcount
       exact ⟨n + 1, le_rfl, hupper, by omega⟩
 
-/-- **Lemma 2 (upper queens).** An upper queen in column `n` lies on
+/-- **Lemma 3 (upper queens).** An upper queen in column `n` lies on
 upper diagonal `U(n)`: its row is `n + U(n)`. Equivalently, the `k`th
 upper queen lies on the `k`th upper diagonal. -/
 theorem q_eq_add_upperCount {n : ℕ} (hn : n < q n) :
@@ -153,7 +153,7 @@ theorem q_eq_add_upperCount {n : ℕ} (hn : n < q n) :
     | zero => simp at hn
     | succ n =>
       have hcount : upperCount (n + 1) = upperCount n + 1 := by
-        rw [upperCount_succ, if_pos hn]
+        rw [upperCount_succ, ite_eq_left hn]
       have hle : q (n + 1) ≤ n + 1 + (upperCount n + 1) := by
         apply q_le_of_available
         intro i
@@ -221,11 +221,11 @@ theorem upperCount_lt_of_upper {m n : ℕ} (hmn : m < n) (hn : n < q n) :
     upperCount m < upperCount n := by
   obtain ⟨k, rfl⟩ := Nat.exists_eq_succ_of_ne_zero (by omega : n ≠ 0)
   have hmono := upperCount_mono (show m ≤ k by omega)
-  rw [upperCount_succ, if_pos hn]
+  rw [upperCount_succ, ite_eq_left hn]
   omega
 
 /-- Successive upper rows differ by at least two, the observation following
-Section 2, Lemma 2. -/
+Section 2, Lemma 3. -/
 theorem upper_rows_gap {m n : ℕ} (hm : m < q m) (hn : n < q n) (hmn : m < n) :
     q m + 2 ≤ q n := by
   have hcount := upperCount_lt_of_upper hmn hn

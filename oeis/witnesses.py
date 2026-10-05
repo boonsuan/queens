@@ -9,7 +9,7 @@ programs:
 
   * bitboard_queens applies the defining greedy rule with bit masks of
     attacked rows, diagonals, and antidiagonals;
-  * upper_queen_generator uses the lemma of Section 2 (the kth upper queen lies on the kth
+  * upper_queen_generator uses Lemma 3 (the kth upper queen lies on the kth
     upper diagonal) and searches for a lower queen only between the least
     unused row m and the row n - d allowed by the least unused lower-diagonal
     magnitude d. It is fast enough for a million queens.
@@ -19,7 +19,7 @@ zero-based; indices of OEIS terms are one-based. As in the OEIS entries, the
 origin counts as an upper column.
 
 Column runs and gaps (the first 20000 queens):
-  * every value in the table of the corollary "Column runs and gaps" occurs, and no other;
+  * every value in the table of Corollary 20 occurs, and no other;
   * the origin creates no run of four lower or six upper columns;
   * for c = 1, 2, 3 the maximal runs of c's in A275885 have exactly the
     lengths L_c computed by runs_and_gaps.py;
@@ -85,13 +85,13 @@ def bitboard_queens(count: int) -> list[int]:
 
 
 def upper_queen_generator(count: int) -> tuple[list[int], list[int]]:
-    """q_0, ..., q_{count-1} and the upper columns, using the lemma of Section 2.
+    """q_0, ..., q_{count-1} and the upper columns, using Lemma 3.
 
     In column n, every row below the least unused row m is taken, and every
     lower diagonal of magnitude below the least unused magnitude d is taken
     (the origin takes magnitude 0), so a lower queen lies in a row between m
     and n - d. If no such row is free, the queen is the (k+1)st upper queen,
-    in row n + k + 1 by the lemma of Section 2.
+    in row n + k + 1 by Lemma 3.
     """
     # Room for every row, magnitude, and antidiagonal used: an upper row
     # n + k is below 2 count. Indexing past the end would stop with an error.
@@ -109,7 +109,7 @@ def upper_queen_generator(count: int) -> tuple[list[int], list[int]]:
             magnitudes[n - y] = 1
             while magnitudes[d]:
                 d += 1
-        else:                                   # an upper queen, by the lemma of Section 2
+        else:                                   # an upper queen, by Lemma 3
             k += 1
             y = n + k
             uppers.append(n)
@@ -143,7 +143,7 @@ def first_indices(values: list) -> dict:
 
 
 def column_sequences(q: list[int]) -> dict:
-    """The five OEIS sequences of the corollary "Column runs and gaps", from the columns 0..len(q)-1."""
+    """The five OEIS sequences of Corollary 20, from the columns 0..len(q)-1."""
     u = [1] + [int(q[n] > n) for n in range(1, len(q))]     # the origin counts as upper
     uppers = [n for n, bit in enumerate(u) if bit]
     lowers = [n for n, bit in enumerate(u) if not bit]
@@ -157,12 +157,12 @@ def column_sequences(q: list[int]) -> dict:
             'A275889': [b - a for a, b in zip(lowers, lowers[1:])]}
 
 
-# ------------------------------------------------------------ the corollary "Column runs and gaps"
+# ------------------------------------------------------------ Corollary 20
 
 def initial_runs(g: list[int], uppers: list[int]) -> tuple[list[dict], dict]:
     """Check the maximal runs of equal terms of A275885 against L_c.
 
-    Obtain A275885 from g = A275888 as in the proof of the corollary "Column runs and gaps": delete
+    Obtain A275885 from g = A275888 as in the proof of Corollary 20: delete
     the 1s and replace each other term k by k - 1. Term i of A275885 is the
     lower run ending just before upper column y_i. In the run graph, it is
     the edge from the state after column y_{i-1} to the state after column
@@ -209,7 +209,7 @@ def check_column_sequences(q: list[int]) -> tuple[dict, list[str]]:
     result = {'columns': len(q), 'first indices of each value': values,
               'first maximal run of each length, by repeated term': first,
               'initial runs of A275887, checked directly': initial}
-    lines = [f'first {len(q)} queens: every value of the corollary "Column runs and gaps" occurs, and no other',
+    lines = [f'first {len(q)} queens: every value of Corollary 20 occurs, and no other',
              'A275887 first indices ' + str(values['A275887']),
              'the maximal runs of c in A275885 attain every length in L_c, for c = 1, 2, 3',
              f'{len(initial)} initial runs of A275887 are checked directly, through column {last_column}']

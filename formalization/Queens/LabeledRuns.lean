@@ -3,7 +3,7 @@ import Queens.Runs
 /-!
 # Certificates for runs in a labeled graph walk
 
-Corollary 19 reduces repeated lower-run lengths to a walk in a finite labeled
+Corollary 20 reduces repeated lower-run lengths to a walk in a finite labeled
 graph. The certificate used here assigns to each vertex the permitted numbers
 of equal labels before a different label. Checking closure under prepending one
 edge is sufficient: induction on an actual finite path proves the bound. A
@@ -15,18 +15,18 @@ namespace Queens.Sequence
 
 variable {V Label : Type*}
 
-/-- Corollary 19: a finite path all of whose edges carry one fixed label. -/
+/-- Corollary 20: a finite path all of whose edges carry one fixed label. -/
 inductive ConstantLabelPath (edge : V → Label → V → Prop) (label : Label) : V → ℕ → V → Prop
   | nil (v : V) : ConstantLabelPath edge label v 0 v
   | cons {v w t : V} {length : ℕ} : edge v label w →
       ConstantLabelPath edge label w length t →
       ConstantLabelPath edge label v (length + 1) t
 
-/-- Corollary 19: a walk with separately specified vertices and edge labels. -/
+/-- Corollary 20: a walk with separately specified vertices and edge labels. -/
 def LabeledWalk (edge : V → Label → V → Prop) (vertices : ℕ → V)
     (labels : ℕ → Label) : Prop := ∀ n, edge (vertices n) (labels n) (vertices (n + 1))
 
-/-- For Corollary 19, a constant block in the labels of a walk gives a constant-labeled finite
+/-- For Corollary 20, a constant block in the labels of a walk gives a constant-labeled finite
 path between the corresponding vertices. -/
 theorem LabeledWalk.constantLabelPath {edge : V → Label → V → Prop}
     {vertices : ℕ → V} {labels : ℕ → Label} (hwalk : LabeledWalk edge vertices labels)
@@ -45,12 +45,12 @@ theorem LabeledWalk.constantLabelPath {edge : V → Label → V → Prop}
     simpa [Nat.add_assoc, Nat.add_comm, Nat.add_left_comm] using
       ConstantLabelPath.cons he (ih htail)
 
-/-- Corollary 19: finite sets of possible lengths before a differently labeled
+/-- Corollary 20: finite sets of possible lengths before a differently labeled
 edge. Only closure of these sets is needed, not an untrusted claim that they
 were computed exhaustively. `starts` handles the other boundary of a maximal run. -/
 structure RunLengthCertificate (edge : V → Label → V → Prop)
     (labels : Finset Label) (allowed : Label → Set ℕ) where
-  /-- For Corollary 19, permitted numbers of `c`-edges before a first differently labeled edge. -/
+  /-- For Corollary 20, permitted numbers of `c`-edges before a first differently labeled edge. -/
   lengths : Label → V → Finset ℕ
   /-- A different next edge terminates a constant path of length zero. -/
   terminal : ∀ {v w c d}, c ∈ labels → edge v d w → d ≠ c → 0 ∈ lengths c v
@@ -61,7 +61,7 @@ structure RunLengthCertificate (edge : V → Label → V → Prop)
   starts : ∀ {u v c d k}, c ∈ labels → edge u d v → d ≠ c →
     k ∈ lengths c v → 0 < k → k ∈ allowed c
 
-/-- For Corollary 19, prepending a constant path to a certified remaining length adds their
+/-- For Corollary 20, prepending a constant path to a certified remaining length adds their
 lengths. No different final label is required for this closure lemma. -/
 theorem RunLengthCertificate.path_add_mem {edge : V → Label → V → Prop}
     {labels : Finset Label} {allowed : Label → Set ℕ}
@@ -85,7 +85,7 @@ theorem RunLengthCertificate.path_length_mem {edge : V → Label → V → Prop}
     length ∈ cert.lengths c v := by
   simpa using cert.path_add_mem hc hpath (cert.terminal hc hend hd)
 
-/-- **Corollary 19, graph argument:** every positive-start maximal run in a
+/-- **Corollary 20, graph argument:** every positive-start maximal run in a
 walk has a length allowed by a checked certificate. Runs at index zero need
 separate initial-state information, just as the paper checks its initial runs. -/
 theorem RunLengthCertificate.maximalRun_length_mem {edge : V → Label → V → Prop}
@@ -102,7 +102,7 @@ theorem RunLengthCertificate.maximalRun_length_mem {edge : V → Label → V →
   rw [heq] at he
   exact cert.starts hc he hpre hmem hrun.1
 
-/-- For Corollary 19, nonempty bounded remaining-length sets bound all constant paths, including
+/-- For Corollary 20, nonempty bounded remaining-length sets bound all constant paths, including
 prefixes of an infinite constant tail. This justifies termination of every run. -/
 theorem RunLengthCertificate.constantPath_length_le {edge : V → Label → V → Prop}
     {labels : Finset Label} {allowed : Label → Set ℕ}

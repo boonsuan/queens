@@ -4,14 +4,14 @@ import Mathlib.Algebra.BigOperators.Group.List.Basic
 /-!
 # Distinct successor counts
 
-Proposition 17 counts each directed edge once, even when distinct branches of
+Proposition 18 counts each directed edge once, even when distinct branches of
 Algorithm 1 have the same successor. This file defines that count and proves
 the generic sum decomposition used by the bounded kernel checks.
 -/
 
 namespace Queens.Finite
 
-/-- Proposition 17: number of distinct successors of a state. Failed
+/-- Proposition 18: number of distinct successors of a state. Failed
 calculations contribute zero; `certified_successors` separately rules them out
 on the certified invariant. -/
 def stateSuccessorCount (s : State) : ℕ :=
@@ -19,7 +19,7 @@ def stateSuccessorCount (s : State) : ℕ :=
   | .error _ => 0
   | .ok next => next.toFinset.card
 
-/-- Proposition 17: sum distinct successor counts over the original invariant
+/-- Proposition 18: sum distinct successor counts over the original invariant
 table. The table's checked uniqueness ensures distinct source vertices. -/
 def stateEdgeCount : ℕ := (Data.states.toList.map stateSuccessorCount).sum
 

@@ -6,7 +6,7 @@ import Queens.Finite.Seed
 /-!
 # Causal bounds for the actual branch
 
-Lemma 16 uses `κ ≥ 12` and Condition 15 to show that every requested symbol
+Lemma 17 uses `κ ≥ 12` and Condition 16 to show that every requested symbol
 precedes the current column. The verified starting board and monotonicity of
 the actual row reference establish the lower bound on `κ` for all later columns.
 -/
@@ -26,14 +26,14 @@ theorem rowReference_ge_nineteen {n : ℕ} (hn : 30 ≤ n) : 19 ≤ rowReference
   rwa [Finite.rowReference_thirty] at h
 
 /-- The upper-count reference stays at least twelve after the verified start,
-as required by Lemma 16. -/
+as required by Lemma 17. -/
 theorem countReference_ge_twelve {n : ℕ} (hn : 30 ≤ n) : 12 ≤ countReference n := by
   have h := countReference_mono hn
   rwa [Finite.countReference_thirty] at h
 
-/-- Under Condition 15 and `κ ≥ 12`, every symbol through offset six is already
-determined. This is the strict causality inequality of Lemma 16(i), independent
-of the history length used in the forty-symbol extension of Corollary 19. -/
+/-- Under Condition 16 and `κ ≥ 12`, every symbol through offset six is already
+determined. This is the strict causality inequality of Lemma 17(i), independent
+of the history length used in the forty-symbol extension of Corollary 20. -/
 theorem StateRepresented.requests_causal_general {memory n : ℕ} {s : Finite.State}
     (hrep : StateRepresented n s (memory := memory))
     (hcount : 12 ≤ countReference n) (hc : Finite.Condition s) :
@@ -43,7 +43,7 @@ theorem StateRepresented.requests_causal_general {memory n : ℕ} {s : Finite.St
   rw [hrep.upperDisplacement_eq]
   exact hc.2.1
 
-/-- Lemma 16(i): the checked starting board supplies the count bound needed
+/-- Lemma 17(i): the checked starting board supplies the count bound needed
 for causality in the twelve-symbol calculation from column 30 onwards. -/
 theorem StateRepresented.requests_causal {n : ℕ} {s : Finite.State}
     (hrep : StateRepresented n s) (hn : 30 ≤ n) (hc : Finite.Condition s) :
@@ -51,8 +51,8 @@ theorem StateRepresented.requests_causal {n : ℕ} {s : Finite.State}
   hrep.requests_causal_general (countReference_ge_twelve hn) hc
 
 /-- The actual history graph path supplies the queue-extension guarantee
-used by the executable candidate and row-search loops (Lemma 16(i)). The history
-length and graph are arbitrary, as required by Corollary 19's larger graph. -/
+used by the executable candidate and row-search loops (Lemma 17(i)). The history
+length and graph are arbitrary, as required by Corollary 20's larger graph. -/
 theorem StateRepresented.extendsActualWord_general {memory n : ℕ} {s : Finite.State}
     {graph : Finite.HistoryGraph} (hrep : StateRepresented n s (memory := memory))
     (hstart : memory < rowReference n)
@@ -69,7 +69,7 @@ theorem StateRepresented.extendsActualWord_general {memory n : ℕ} {s : Finite.
   refine ⟨max k request, Nat.le_max_left _ _, Nat.le_max_right _ _, by omega, ?_⟩
   simpa using hmem
 
-/-- Lemma 16(i): queue extension along the checked twelve-symbol graph retains
+/-- Lemma 17(i): queue extension along the checked twelve-symbol graph retains
 the actual word after the verified starting column. -/
 theorem StateRepresented.extendsActualWord {n : ℕ} {s : Finite.State}
     (hrep : StateRepresented n s) (hn : 30 ≤ n)

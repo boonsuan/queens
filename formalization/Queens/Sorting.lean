@@ -7,7 +7,7 @@ import Mathlib.Tactic.ByContra
 /-!
 # Sorting preserves a uniform discrepancy bound
 
-This is the order-theoretic argument in Lemma 6 of *Greedy Queens and the Golden Ratio*.
+This is the order-theoretic argument in Lemma 7 of *Greedy Queens and the Golden Ratio*.
 It is independent of the queen construction. A monotone reference sequence approximating
 an enumeration also approximates any monotone rearrangement of that enumeration.
 
@@ -20,7 +20,7 @@ implicitly.
 namespace Queens
 
 /-- An injection of natural numbers sends some element of the first `n + 1` indices to
-an index at least `n`. This is the finite pigeonhole argument used in Lemma 6. -/
+an index at least `n`. This is the finite pigeonhole argument used in Lemma 7. -/
 theorem exists_le_map_ge {f : ℕ → ℕ} (hf : Function.Injective f) (n : ℕ) :
     ∃ i ≤ n, n ≤ f i := by
   by_contra! h
@@ -33,13 +33,13 @@ theorem exists_le_map_ge {f : ℕ → ℕ} (hf : Function.Injective f) (n : ℕ)
   omega
 
 /-- A permutation has an index at least `n` whose image is at most `n`.
-This is the reverse pigeonhole argument in Lemma 6. -/
+This is the reverse pigeonhole argument in Lemma 7. -/
 theorem exists_ge_perm_le (e : Equiv.Perm ℕ) (n : ℕ) :
     ∃ i ≥ n, e i ≤ n := by
   obtain ⟨j, hj, hn⟩ := exists_le_map_ge e.symm.injective n
   exact ⟨e.symm j, hn, by simpa using hj⟩
 
-/-- **Lemma 6, sorting step**, in an ordered additive group. If the chronological sequence
+/-- **Lemma 7, sorting step**, in an ordered additive group. If the chronological sequence
 `v ∘ e` stays within `C` of the monotone reference sequence `t`, the monotone enumeration
 `v` satisfies the same bound. In the paper, `v` is the sequence of sorted lower rows and
 `t j = xⱼᴸ - j`; `e` matches chronological rows with their sorted ranks. -/

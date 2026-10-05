@@ -58,4 +58,5 @@ jobs:
           python3 scripts/export_forty_certificate.py
           python3 scripts/export_run_witnesses.py
           python3 scripts/export_run_lengths.py
+          python3 scripts/export_window_bounds.py
           git diff --exit-code -- Queens/Finite

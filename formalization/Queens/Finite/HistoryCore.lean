@@ -3,25 +3,25 @@ import Queens.Finite.HistoryChecking
 /-!
 # History windows and paths for arbitrary finite graphs
 
-Definition 11 describes consecutive fixed-length windows in the queen word.
+Definition 12 describes consecutive fixed-length windows in the queen word.
 These interfaces work at every history length: the main theorem uses twelve
-symbols and Corollary 19 uses forty. They are independent of either generated
+symbols and Corollary 20 uses forty. They are independent of either generated
 state table. `Queens.Finite.History` checks the concrete twelve-symbol graph.
 -/
 
 namespace Queens.Finite
 
-/-- Definition 11: count labeled edges, not merely pairs of vertices. -/
+/-- Definition 12: count labeled edges, not merely pairs of vertices. -/
 def HistoryGraph.edgeCount (graph : HistoryGraph) : ℕ :=
   (graph.map (fun entry => ((List.range 4).filter (hasOffset entry.2)).length)).sum
 
-/-- Definition 11: the window of a prescribed length ending at an absolute index.
-The default length is twelve, and Corollary 19 also uses forty. -/
+/-- Definition 12: the window of a prescribed length ending at an absolute index.
+The default length is twelve, and Corollary 20 also uses forty. -/
 def historyWindow (symbols : ℕ → ℕ) (last : ℕ) (memory : ℕ := historyLength) : ℕ :=
   encode ((List.range memory).map
     (fun k => symbols (last + 1 - memory + k)))
 
-/-- Definition 11 and Section 6.1: all complete positive-index windows through
+/-- Definition 12 and Section 6.1: all complete positive-index windows through
 `last` are vertices, and consecutive windows follow allowed labeled edges. -/
 def HistoryGraph.FollowsThrough (graph : HistoryGraph) (symbols : ℕ → ℕ)
     (last : ℕ) (memory : ℕ := historyLength) : Prop :=

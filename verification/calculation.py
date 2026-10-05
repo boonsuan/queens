@@ -224,13 +224,15 @@ class Calculation:
         return columns
 
     def antidiagonal_attack(self, Q: tuple, r: int) -> bool:
-        """The antidiagonal criterion of Section 4.4: an upper queen in column m + h attacks the candidate
-        (n, m + r) along its antidiagonal exactly when 2h + Gamma(h) = z + r."""
+        """The antidiagonal criterion of Section 4.4: an upper queen in column
+        m + h attacks the candidate (n, m + r) along its antidiagonal exactly
+        when 2h + Gamma(h) = z + r."""
         return any(2 * h + gamma == self.s.z + r for h, gamma in self.upper_columns(Q))
 
     def adjustment(self, Q: tuple, x: int) -> int:
-        """The adjustment J(x) of Section 4.4: the upper queens in Q with relative row h + Gamma(h) <= x,
-        minus those in H_in with relative row > x."""
+        """The adjustment J(x) of Section 4.4: the upper queens in Q with
+        relative row h + Gamma(h) <= x, minus those in H_in with relative
+        row > x."""
         value = 0
         for h, gamma in self.upper_columns(Q):
             if h >= 0 and h + gamma <= x:

@@ -4,6 +4,7 @@
 rows before it. This note proves that it always prints a row, that the row is q<sub>n</sub>, and
 analyses its running time and memory. It follows the program
 [`spire-at.c`](spire-at.c) step by step, and rests on results of the paper, cited by number.
+"Section" always means a section of the paper; the sections of this note are written §1 to §7.
 
 In short:
 
@@ -30,7 +31,7 @@ The queen in column n sits in row q<sub>n</sub> (columns and rows start at 0). A
 *upper* if q<sub>n</sub> > n and *lower* otherwise. U(x) is the number of upper queens in
 columns 1, …, x. The *queen word* is σ = σ<sub>1</sub>σ<sub>2</sub>…, where
 σ<sub>i</sub> = 2u<sub>i</sub> + b<sub>i</sub>, with u<sub>i</sub> = 1 if column i holds an
-upper queen and b<sub>i</sub> = 1 if row i does (Definition 9 of the paper, "Queen word"). So
+upper queen and b<sub>i</sub> = 1 if row i does (Definition 10 of the paper, "Queen word"). So
 U(x) = u<sub>1</sub> + … + u<sub>x</sub>: the upper bit of each symbol counts toward U.
 
 Section 7 of the paper computes the queens with *copies* of one calculation. A copy places
@@ -38,9 +39,9 @@ queens column by column. Before placing the queen in column n it keeps a few rec
 them the least unused row m and
 
 - the *queue* Q = σ<sub>m</sub> … σ<sub>m+|Q|−1</sub>, the symbols of σ it has read from index
-  m on (nonempty; Definition 10);
-- z = n − m − U(m − 1) (Definition 10), and w, R, D, A, and the upper bits of
-  σ<sub>m−4</sub>, …, σ<sub>m−1</sub> (Section 7.2, equation (29)).
+  m on (nonempty; Definition 11);
+- z = n − m − U(m − 1) (Definition 11), and w, R, D, A, and the upper bits of
+  σ<sub>m−4</sub>, …, σ<sub>m−1</sub> (Section 7.2, the records of a copy).
 
 A copy reads σ from σ<sub>30</sub> on, one symbol at a time, and writes σ<sub>n</sub> as it
 places the queen in column n; the copy that places the queens of interest (the *top*) writes
@@ -75,18 +76,22 @@ is given by an upper bit and an offset, and its row is m<sub>0</sub> + offset fo
 and n<sub>0</sub> + U(n<sub>0</sub> − 1) + offset for an upper one, where m<sub>0</sub> and
 n<sub>0</sub> are the counters at the start of the entry (the encoding of
 [`../fast_generator`](../fast_generator/), from the rows m + r and n + U(n − 1) + 1 of
-Section 7.2 and Lemma 2).
+Section 7.2 and the paper's Lemma 3).
 
-**F4 (bounds on the records; Condition 15, verified in Section 6).** At every column of the
+**F4 (bounds on the records; Condition 16, verified in Section 6).** At every column of the
 actual process, −4 ≤ z ≤ 5.
 
-**F5 (the upper count; the proof of Lemma 20).** On the actual board before column n ≥ 30,
+**F5 (the upper count; the proof of Lemma 21).** On the actual board before column n ≥ 30,
 U(n − 1) = m + w − |D|.
 
-**F6 (the golden ratio; Proposition 21).** For every x ≥ 0,
-−3/φ < U(x) − x/φ < 2/φ.
+**F6 (the golden ratio; Lemma 23).** For every x ≥ 0,
+(23√5 − 61)/8 < U(x) − x/φ < √5 − 1 = 2/φ, and so −3/φ < U(x) − x/φ < 2/φ, the form used
+below. For x ≥ 29 the non-strict bounds are Lemma 23, applied to the consistent window bounds
+that [`knuth_ranges.py`](../verification/knuth_ranges.py) computes and checks: the two constants
+are the least and greatest of those bounds. The script checks x ≤ 28 directly. Equality is
+impossible, since U(0) − 0 = 0 and for x ≥ 1 the value U(x) − x/φ is irrational.
 
-**F7 (the forty-symbol history graph; Appendix A3, used for Corollary 19).** The paper repeats
+**F7 (the forty-symbol history graph; Appendix A3, used for Corollary 20).** The paper repeats
 its verification of Section 6 with histories of forty symbols instead of twelve, giving a graph
 whose vertices are words of forty symbols and whose edges append a symbol and drop the oldest
 ([`../oeis/results/history-40.json`](../oeis/results/history-40.json), 16 876 vertices). The
@@ -174,11 +179,11 @@ stands before column n with least unused row m, where
 
 and u<sub>m</sub>, …, u<sub>p−1</sub> are the upper bits of the last |Q| of the 128 symbols.
 
-*Proof.* The queue is σ<sub>m</sub> … σ<sub>m+|Q|−1</sub> (Definition 10), and it ends with the
+*Proof.* The queue is σ<sub>m</sub> … σ<sub>m+|Q|−1</sub> (Definition 11), and it ends with the
 last symbol read, σ<sub>p−1</sub>, since every symbol read is appended to it (Algorithm 4):
 so m + |Q| − 1 = p − 1. As |Q| ≤ 11 < 128 (F1), σ<sub>m</sub>, …, σ<sub>p−1</sub> are among
 the 128 symbols read, which gives U(m − 1). The formula for n is the definition of z
-(Definition 10), and that for U(n − 1) is F5, which applies since a paused copy stands before a
+(Definition 11), and that for U(n − 1) is F5, which applies since a paused copy stands before a
 column n ≥ 48. ∎
 
 **Lemma 4 (a started copy continues correctly).** A copy at record R at input position
@@ -206,7 +211,7 @@ U(m − 1) = (m − 1)/φ + ε with −3/φ < ε < 2/φ, and since 1 + 1/φ = φ
 
   n<sub>R</sub> − pφ = −|Q|φ − 1/φ + ε + z.
 
-With 1 ≤ |Q| ≤ 11 (F1, Definition 10) and −4 ≤ z ≤ 5 (F4), this lies between
+With 1 ≤ |Q| ≤ 11 (F1, Definition 11) and −4 ≤ z ≤ 5 (F4), this lies between
 −11φ − 4/φ − 4 > −24.28 and −φ + 1/φ + 5 = 4. Adding the two ranges gives
 c − 543.83 < n<sub>R</sub> < c − 507.46. ∎
 
@@ -276,8 +281,8 @@ is empty (Lemma 2); every record has a table position (Lemma 1); no copy starts 
 column, and every walk is between 508 and 543 columns (Lemma 5). Every quantity is below
 2n + 2<sup>13</sup>, within the integers' 4096 bits. The chain's last copy stands at a column
 c<sub>K</sub> with 19 000 < c<sub>K</sub> < 32 768 (as p<sub>K−1</sub> > 19 900, by the proof
-of Lemma 5), and the copies above take fewer than 2 000 of its symbols (Section 6), so it never
-reads past the prefix of 65 536 symbols. All loops are bounded by Section 6. ∎
+of Lemma 5), and the copies above take fewer than 2 000 of its symbols (§6), so it never
+reads past the prefix of 65 536 symbols. All loops are bounded as in §6. ∎
 
 The same holds for the ranges of `spire`, `spire-rows` and `spire-print`, whose record searches
 read from input positions of 254 or more (the lowest is for a range that starts at column
@@ -342,16 +347,16 @@ memory is a few megabytes (the prefix of σ, and 512 bytes for each copy's posit
 ## 7. Checks
 
 `make check` runs [`synchronization.py`](synchronization.py), the computation of Lemma 6. The
-proofs above also assume that `spire-at.c` carries out the procedure of Section 3, and
+proofs above also assume that `spire-at.c` carries out the procedure of §3, and
 [`check.py`](check.py), which `make check` runs next, tests that it does:
 
-- against the Section 7 generator's rows, at 17 columns below 10<sup>7</sup>, including the
+- against the Section 7 generator's rows, at 17 columns less than 10<sup>7</sup>, including the
   seed's and the edges of steps 0 and 1;
 - against `spire-print` up to 10<sup>19</sup>, a separate program (tower tables and 64-bit
   numbers) that computes the rows around each column;
 - against itself, with its chain aimed at three different columns (`--walk D` aims it D
   columns early, so that every copy near the top starts from a different record);
-- against the bounds of Proposition 21 on q<sub>n</sub> − nφ and q<sub>n</sub> − n/φ, up to
+- against the bounds of the paper's Theorem 2 on q<sub>n</sub> − nφ and q<sub>n</sub> − n/φ, up to
   10<sup>1000</sup>, where any error in the large numbers would show at once.
 
 [`make_records.py`](make_records.py) also checks the identities of Lemma 3 at 524 272 points of

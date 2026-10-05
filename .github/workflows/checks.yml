@@ -1,0 +1,154 @@
+# Copyright (c) 2026 Boon Suan Ho
+# SPDX-License-Identifier: MIT
+
+# The checks behind the paper: the finite verification and Theorem 2 (verification/), the
+# OEIS facts (oeis/), and the Section 7 generator (fast_generator/). The Python checks run on
+# the oldest and newest supported Python; the generator is built and tested with GCC and Clang
+# on Linux, where warnings are errors, and with Apple Clang on macOS. Spire and the Lean
+# formalization have their own workflows.
+name: Checks
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'verification/**'
+      - 'oeis/**'
+      - 'fast_generator/**'
+      - '.github/workflows/checks.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'verification/**'
+      - 'oeis/**'
+      - 'fast_generator/**'
+      - '.github/workflows/checks.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: checks-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verification:
+    name: Verification and OEIS (Python ${{ matrix.python }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        python: ['3.10', '3.13']
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Check out the source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: The finite verification (Sections 6.1-6.5)
+        working-directory: verification
+        run: |
+          python verify_tuples.py
+          python verify_bitmasks.py
+          python compare_verifiers.py
+          python check_correspondence.py
+          python test_rejection.py
+
+      - name: Theorem 2 and Knuth's ranges (Section 6.6)
+        working-directory: verification
+        run: |
+          python knuth_ranges.py
+          python knuth_ranges_bitmasks.py
+
+      - name: The local states of Table 5 (Section 7.5)
+        working-directory: verification
+        run: python states.py 30-39 100 1000 10000 100000 1000000
+
+      - name: Construct the history graph (Section 6.2)
+        working-directory: verification
+        run: |
+          python construct_history_graph.py
+          python history_length_experiment.py
+
+      - name: The OEIS checks
+        run: |
+          python oeis/run_all.py
+          git diff --exit-code -- oeis/results
+
+  generator:
+    name: Section 7 generator (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Linux, GCC
+            os: ubuntu-24.04
+            cc: gcc
+            werror: -Werror
+          - name: Linux, Clang
+            os: ubuntu-24.04
+            cc: clang
+            werror: -Werror
+          - name: macOS, Apple Clang
+            os: macos-15
+            cc: clang
+    defaults:
+      run:
+        working-directory: fast_generator
+        shell: bash
+    env:
+      CC: ${{ matrix.cc }}
+      CFLAGS: -O3 -std=c11 -DNDEBUG -fwrapv ${{ matrix.werror }}
+    steps:
+      - name: Check out the source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.13'
+
+      - name: Show the compiler
+        run: $CC --version
+
+      - name: Build
+        run: make
+
+      - name: Check the tables and replay the finite cases
+        run: make verify
+
+      - name: Compare coordinates and test the C interface
+        run: make test
+
+      - name: Test under AddressSanitizer and UndefinedBehaviorSanitizer
+        if: runner.os == 'Linux'
+        env:
+          ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+        run: |
+          make sanitize
+          ./build/test_api_sanitize
+          ./build/queens_sanitize --count 100000
+
+      - name: Test the scanner of Knuth's ranges and its recorded scan
+        run: |
+          make build/scan_bounds build/knuth_packed
+          python tests/check_bounds.py
+          python tests/check_bounds_results.py
+
+      - name: Check the recorded EC2 benchmark
+        run: python tests/check_ec2_results.py --environment results/ec2-environment.json

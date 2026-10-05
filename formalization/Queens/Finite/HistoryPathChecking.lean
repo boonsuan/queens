@@ -3,14 +3,14 @@ import Queens.Finite.HistoryCore
 /-!
 # Kernel-efficient checking of finite history paths
 
-The seed words in Section 6.1 and Corollary 19 are checked using successful tree
+The seed words in Section 6.1 and Corollary 20 are checked using successful tree
 lookups rather than repeated linear membership tests. Lookup soundness converts
 this executable check into the original graph-path predicate.
 -/
 
 namespace Queens.Finite
 
-/-- Definition 11: check each complete positive-index window and each following
+/-- Definition 12: check each complete positive-index window and each following
 edge in a finite word prefix. Finding its mask supplies a vertex witness. -/
 def HistoryGraph.checkFollowsThrough (graph : HistoryGraph) (symbols : ℕ → ℕ)
     (last : ℕ) (memory : ℕ := historyLength) : Bool :=

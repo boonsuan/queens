@@ -3,7 +3,7 @@ import Queens.LocalBoard
 /-!
 # Advances of the actual reference positions
 
-These lemmas formalize the row-search bound in Section 5, Lemma 16. Under
+These lemmas formalize the row-search bound in Section 5, Lemma 17. Under
 the bounds on `w` and `R`, the two rows at offsets five and six cannot both
 be occupied, because only upper queens could occupy them and upper rows
 are never adjacent.
@@ -62,7 +62,7 @@ theorem far_occupied_row_is_upper {n t i : ℕ}
     omega
 
 /-- The rows at offsets five and six cannot both be occupied after the next
-queen is placed. This is the upper-row spacing argument in Lemma 16. -/
+queen is placed. This is the upper-row spacing argument in Lemma 17. -/
 theorem one_far_row_unused {n : ℕ} (hw : window n ≤ 4)
     (hR : rowOffsets n ⊆ Finset.Icc 1 4) :
     rowReference n + 5 ∉ occupiedRows (n + 1) ∨
@@ -83,8 +83,8 @@ theorem one_far_row_unused {n : ℕ} (hw : window n ≤ 4)
   · have hgap := upper_rows_gap hupperj hupperi hij
     omega
 
-/-- **Lemma 16(iii), actual reference bound.** With the row and window parts
-of Condition 15, the actual least-unused-row reference advances by at most six. -/
+/-- **Lemma 17(iii), actual reference bound.** With the row and window parts
+of Condition 16, the actual least-unused-row reference advances by at most six. -/
 theorem rowReference_succ_le_add_six {n : ℕ} (hw : window n ≤ 4)
     (hR : rowOffsets n ⊆ Finset.Icc 1 4) :
     rowReference (n + 1) ≤ rowReference n + 6 := by

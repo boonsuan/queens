@@ -1,9 +1,10 @@
 # The finite verification (Sections 4–6)
 
-The main theorem rests on one bound, Lemma 5 of the paper: the *j*th lower
-queen lies on a lower diagonal within 4 of *j*. Sections 4–6 prove it with a
-finite computation and an induction. This folder contains that computation
-and the programs that check it.
+The main theorem rests on one bound, Lemma 6 (bounded diagonal discrepancy):
+the *j*th lower queen lies on a lower diagonal within 4 of *j*.
+Sections 4–6 prove it with a finite computation and an induction. This folder
+contains that computation and the programs that check it, together with the
+check of Section 6.6 behind Theorem 2, which proves Knuth's ranges.
 
 In outline:
 
@@ -29,7 +30,8 @@ python verify_bitmasks.py        # the same check, implemented independently
 python compare_verifiers.py      # the two state graphs are identical
 python check_correspondence.py   # the calculation matches 3000 actual queens
 python test_rejection.py         # a graph with one edge removed is rejected
-python sharper_constants.py      # the facts behind the sharper constants of Section 6.6
+python knuth_ranges.py           # Theorem 2 and Knuth's ranges (Section 6.6), exactly
+python knuth_ranges_bitmasks.py  # the same check, implemented independently
 ```
 
 Each takes a few seconds. The first two print
@@ -46,8 +48,18 @@ requests with no outgoing edge: 0
 
 and the tuple version also reports the largest fresh input offset (5), the
 largest row advance (5), and the range of *w* − *r* − |*D*| at lower choices
-([−4, 2]). These are the numbers in Proposition "Finite verification" and
+([−4, 2]). These are the numbers in Proposition 18 and
 Appendix A.
+
+`knuth_ranges.py` ends with the constants of Theorem 2, computed exactly in
+Q(√5) and printed to six places:
+
+```text
+window bounds: least lo = -1.196305, greatest hi = 1.236068
+q_n - n phi, upper queens: (-0.814339, 1.236068)
+q_n - n/phi, lower queens: (-2.888544, 4.055728)
+All checks passed: Theorem 2 holds, and with it both halves of Knuth's ranges.
+```
 
 A successful run of `verify_tuples.py` establishes the finite statement of
 Section 6.3. The infinite statement, that the actual queens follow the checked
@@ -67,6 +79,20 @@ stored records, every request with the symbols the graph allows, the queen
 chosen, the new symbol, and the advances *μ* and *ν*. Each step is checked
 against the board computed directly from the greedy rule. Section 4.6 works
 through columns 41, 42, 47, and 53 by hand; `trace.py` reproduces them.
+
+## The state before any column
+
+```sh
+python states.py 30-39 100 1000000    # Table 5 of the paper (Section 7.5), in a few seconds
+python states.py 10000000             # about a minute
+```
+
+prints the eight stored records before each given column *n* ≥ 30, with *m*,
+*d*, and *U*(*m*−1). The queens are computed in linear time, and the calculation
+runs only over a short stretch of columns before *n*, starting with a queue of
+one symbol: it reads only near the least unused row, so the earlier columns
+do not affect the state. Each state is checked against the records computed
+from the board, and against a run that starts twice as far back.
 
 ## Construct the history graph
 
@@ -101,8 +127,10 @@ Outputs are written to `results/`.
 | `actual_branch.py` | §5 | The branch that reads the actual earlier symbols, checked against the board |
 | `check_correspondence.py` | §5, App. A | Runs that branch on columns 30–2999 |
 | `trace.py` | §4.6 | Prints the actual steps column by column |
+| `states.py` | §7.5 | Prints the actual state before any column, quickly (Table 5) |
 | `test_rejection.py` | App. A | Both verifiers reject a damaged graph |
-| `sharper_constants.py` | §6.6 | Checks the facts used for the sharper constants, in exact arithmetic |
+| `knuth_ranges.py` | §6.6 | Window bounds on the vertices of the history graph, Theorem 2, and Knuth's ranges, in exact arithmetic |
+| `knuth_ranges_bitmasks.py` | §6.6, App. A | The same check on the second verifier's state graph, in Q(φ), by exact policy iteration |
 | `construct_history_graph.py` | §6.2 | Builds the history graph |
 | `history_length_experiment.py` | §6.2 | Repeats the construction with lengths 4–14 |
 

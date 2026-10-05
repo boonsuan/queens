@@ -2,7 +2,7 @@ import Queens.Finite.RepeatedRunData
 import Queens.Finite.PathContraction
 
 /-!
-# Executable run-graph certificate obligations for Corollary 19
+# Executable run-graph certificate obligations for Corollary 20
 
 The lookup layout, bounded path contraction, and finite closure predicates are
 separate from their kernel checks and the mathematical soundness argument.
@@ -10,16 +10,16 @@ separate from their kernel checks and the mathematical soundness argument.
 
 namespace Queens.Finite
 
-/-- Corollary 19: whether a numbered forty-symbol state is immediately after
+/-- Corollary 20: whether a numbered forty-symbol state is immediately after
 an upper output. The checked balanced layout supports fast kernel lookup. -/
 def fortyStateUpper (v : ℕ) : Bool :=
   ((indexedLookup v repeatedRunTree).map RunVertexData.upper).getD false
 
-/-- Appendix A: original state successors read from the checked balanced layout. -/
+/-- Appendix A3: original state successors read from the checked balanced layout. -/
 def fortyRunAdjacency : Adjacency := fun v =>
   ((indexedLookup v repeatedRunTree).map RunVertexData.successors).getD []
 
-/-- Corollary 19: candidate remaining lengths for a fixed label and numbered
+/-- Corollary 20: candidate remaining lengths for a fixed label and numbered
 state. The lists are untrusted certificate data until checked below. -/
 def repeatedRunLengths (label vertex : ℕ) : List ℕ :=
   match indexedLookup vertex repeatedRunTree with
@@ -30,7 +30,7 @@ def repeatedRunLengths (label vertex : ℕ) : List ℕ :=
     | 3 => entry.threes
     | _ => []
 
-/-- Corollary 19, A275887: the claimed set of possible positive maximal
+/-- Corollary 20, A275887: the claimed set of possible positive maximal
 repetition lengths. In particular the exceptional missing length is ten. -/
 def AllowedRepeatedRunLength (length : ℕ) : Prop :=
   1 ≤ length ∧ length ≤ 11 ∧ length ≠ 10
@@ -39,14 +39,14 @@ def AllowedRepeatedRunLength (length : ℕ) : Prop :=
 instance (length : ℕ) : Decidable (AllowedRepeatedRunLength length) :=
   inferInstanceAs (Decidable (_ ∧ _))
 
-/-- Appendix A: a run-graph edge is a bounded contraction from an upper state,
+/-- Appendix A3: a run-graph edge is a bounded contraction from an upper state,
 through at most four further upper outputs and one to three lower outputs, to
 the next upper output. Its label is the number of lower outputs. -/
 def FortyRunEdge (v label w : ℕ) : Prop :=
   (∃ entry, indexedLookup v repeatedRunTree = some entry) ∧ fortyStateUpper v = true ∧
     (w, label) ∈ runTargets fortyRunAdjacency fortyStateUpper 5 v
 
-/-- Corollary 19: local closure and boundary checks for the proposed remaining
+/-- Corollary 20: local closure and boundary checks for the proposed remaining
 length sets. Both outgoing labels and every possible remaining length are checked. -/
 def CheckRepeatedRunVertex (v : ℕ) : Prop :=
   (∀ c ∈ ([1, 2, 3] : List ℕ), repeatedRunLengths c v ≠ [] ∧

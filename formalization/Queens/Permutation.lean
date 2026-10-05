@@ -9,7 +9,7 @@ import Mathlib.Tactic.NormNum
 /-!
 # Every row contains a greedy queen
 
-Section 2, Lemma 3 is proved by the paper's antidiagonal argument. Distinct
+Section 2, Lemma 4 is proved by the paper's antidiagonal argument. Distinct
 natural coordinates have a quadratic lower bound on their sum, so occupied
 antidiagonals cannot contain a tail of the natural numbers. A least missing
 row would force such a tail.
@@ -18,7 +18,7 @@ row would force such a tail.
 namespace Queens
 
 /-- Distinct natural numbers have sum at least `0 + ⋯ + (card - 1)`,
-written without division. This is the counting estimate in Lemma 3. -/
+written without division. This is the counting estimate in Lemma 4. -/
 theorem card_mul_pred_le_twice_sum (s : Finset ℕ) :
     s.card * (s.card - 1) ≤ 2 * ∑ i ∈ s, i := by
   have hsum : (∑ i ∈ Finset.range s.card, i) ≤ ∑ i ∈ s, i := by
@@ -36,7 +36,7 @@ theorem card_mul_pred_le_twice_sum (s : Finset ℕ) :
   omega
 
 /-- The same coordinate-sum estimate for an injective enumeration, as used
-for both columns and rows in the proof of Lemma 3. -/
+for both columns and rows in the proof of Lemma 4. -/
 theorem range_mul_pred_le_twice_sum (f : ℕ → ℕ) (hf : Function.Injective f) (t : ℕ) :
     t * (t - 1) ≤ 2 * ∑ i ∈ Finset.range t, f i := by
   have h := card_mul_pred_le_twice_sum ((Finset.range t).image f)
@@ -45,7 +45,7 @@ theorem range_mul_pred_le_twice_sum (f : ℕ → ℕ) (hf : Function.Injective f
   exact h
 
 /-- The occupied antidiagonals cannot contain a tail of the natural
-numbers. This is the coordinate-sum contradiction in Section 2, Lemma 3. -/
+numbers. This is the coordinate-sum contradiction in Section 2, Lemma 4. -/
 theorem no_antidiagonal_tail : ¬ ∃ N, ∀ s ≥ N, ∃ i, q i + i = s := by
   rintro ⟨N, hN⟩
   have hex : ∀ k, ∃ i, q i + i = N + k := fun k => hN (N + k) (by omega)
@@ -74,7 +74,7 @@ theorem no_antidiagonal_tail : ¬ ∃ N, ∀ s ≥ N, ∃ i, q i + i = s := by
 
 /-- If a row is missing but all smaller rows are occupied, then all
 sufficiently large antidiagonals are occupied. This is the first half of
-the proof of Section 2, Lemma 3. -/
+the proof of Section 2, Lemma 4. -/
 theorem missing_row_forces_antidiagonal_tail {m : ℕ}
     (hmissing : ∀ i, q i ≠ m) (hsmall : ∀ r < m, ∃ i, q i = r) :
     ∃ N, ∀ s ≥ N, ∃ i, q i + i = s := by
@@ -112,7 +112,7 @@ theorem missing_row_forces_antidiagonal_tail {m : ℕ}
     omega
   · exact ⟨i.val, by omega⟩
 
-/-- **Lemma 3 (surjectivity).** Every natural row contains a greedy queen.
+/-- **Lemma 4 (surjectivity).** Every natural row contains a greedy queen.
 Together with `q_injective`, this says that `q` is a permutation of `ℕ`. -/
 theorem q_surjective : Function.Surjective q := by
   intro m
@@ -122,7 +122,7 @@ theorem q_surjective : Function.Surjective q := by
     have hmiss : ∀ i, q i ≠ m := by simpa only [not_exists] using hmissing
     exact no_antidiagonal_tail (missing_row_forces_antidiagonal_tail hmiss ih)
 
-/-- **Lemma 3 (permutation).** The greedy queens sequence is a bijection
+/-- **Lemma 4 (permutation).** The greedy queens sequence is a bijection
 between the natural column indices and the natural row indices. -/
 theorem q_bijective : Function.Bijective q := ⟨q_injective, q_surjective⟩
 

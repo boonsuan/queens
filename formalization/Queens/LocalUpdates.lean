@@ -4,7 +4,7 @@ import Queens.LocalRepresentation
 /-!
 # Updating the actual offset records
 
-Equation (update), Section 4.5, follows by inserting the new lower queen (when
+Equation (23), Section 4.5, follows by inserting the new lower queen (when
 there is one) and translating the three reference positions. The set-level
 identities here are independent of the bit-mask implementation.
 -/
@@ -102,9 +102,10 @@ theorem insertedRowOffsets_eq (n : ℕ) :
   unfold lowerRowsBefore
   rw [earlierLowerColumns_succ]
   by_cases hn : q n < n
-  · rw [if_pos hn, Finset.image_insert, retainedOffsets_insert (rowReference_le_q n)]
-    simp only [insertedRowOffsets, if_pos hn, rowOffset, rowOffsets_eq_retained, lowerRowsBefore]
-  · simp only [if_neg hn, insertedRowOffsets, rowOffsets_eq_retained, lowerRowsBefore]
+  · rw [ite_eq_left hn, Finset.image_insert, retainedOffsets_insert (rowReference_le_q n)]
+    simp only [insertedRowOffsets, ite_eq_left hn, rowOffset, rowOffsets_eq_retained,
+      lowerRowsBefore]
+  · simp only [ite_eq_right hn, insertedRowOffsets, rowOffsets_eq_retained, lowerRowsBefore]
 
 /-- Insertion into `D` is precisely the new diagonal set measured at the old reference. -/
 theorem insertedDiagonalOffsets_eq (n : ℕ) :
@@ -112,10 +113,12 @@ theorem insertedDiagonalOffsets_eq (n : ℕ) :
   unfold lowerDiagonals
   rw [earlierLowerColumns_succ]
   by_cases hn : q n < n
-  · rw [if_pos hn, Finset.image_insert,
+  · rw [ite_eq_left hn, Finset.image_insert,
       retainedOffsets_insert (diagonalReference_le_lowerDiagonal hn)]
-    simp only [insertedDiagonalOffsets, if_pos hn, diagonalOffsets_eq_retained, lowerDiagonals]
-  · simp only [if_neg hn, insertedDiagonalOffsets, diagonalOffsets_eq_retained, lowerDiagonals]
+    simp only [insertedDiagonalOffsets, ite_eq_left hn, diagonalOffsets_eq_retained,
+      lowerDiagonals]
+  · simp only [ite_eq_right hn, insertedDiagonalOffsets, diagonalOffsets_eq_retained,
+      lowerDiagonals]
 
 /-- Insertion into `A` is precisely the new antidiagonal set measured at the old reference. -/
 theorem insertedAntidiagonalOffsets_eq (n : ℕ) :
@@ -125,10 +128,10 @@ theorem insertedAntidiagonalOffsets_eq (n : ℕ) :
   rw [earlierLowerColumns_succ]
   by_cases hn : q n < n
   · have hbound : n + rowReference n ≤ n + q n := Nat.add_le_add_left (rowReference_le_q n) n
-    rw [if_pos hn, Finset.image_insert, retainedOffsets_insert hbound]
-    simp only [insertedAntidiagonalOffsets, if_pos hn, rowOffset,
+    rw [ite_eq_left hn, Finset.image_insert, retainedOffsets_insert hbound]
+    simp only [insertedAntidiagonalOffsets, ite_eq_left hn, rowOffset,
       antidiagonalOffsets_eq_retained, lowerAntidiagonalsBefore, Nat.add_sub_add_left]
-  · simp only [if_neg hn, insertedAntidiagonalOffsets,
+  · simp only [ite_eq_right hn, insertedAntidiagonalOffsets,
       antidiagonalOffsets_eq_retained, lowerAntidiagonalsBefore]
 
 /-- The actual row-reference advance `μ`, Section 4.5. -/
@@ -152,14 +155,14 @@ theorem diagonalReference_add_advance (n : ℕ) :
   unfold lowerDiagonalAdvance
   omega
 
-/-- Equation (update), the actual row record: insert the new lower choice,
+/-- Equation (23), the actual row record: insert the new lower choice,
 then discard and translate offsets by `μ`. -/
 theorem rowOffsets_succ (n : ℕ) :
     rowOffsets (n + 1) = retainedOffsets (rowAdvance n) (insertedRowOffsets n) := by
   rw [rowOffsets_eq_retained, insertedRowOffsets_eq, ← retainedOffsets_add,
     rowReference_add_advance]
 
-/-- Equation (update), the actual diagonal record: insert the new lower choice,
+/-- Equation (23), the actual diagonal record: insert the new lower choice,
 then discard and translate offsets by `ν`. -/
 theorem diagonalOffsets_succ (n : ℕ) :
     diagonalOffsets (n + 1) =
@@ -167,7 +170,7 @@ theorem diagonalOffsets_succ (n : ℕ) :
   rw [diagonalOffsets_eq_retained, insertedDiagonalOffsets_eq, ← retainedOffsets_add,
     diagonalReference_add_advance]
 
-/-- Equation (update), the actual antidiagonal record: its reference advances
+/-- Equation (23), the actual antidiagonal record: its reference advances
 by `1 + μ`, because both the column and row reference move. -/
 theorem antidiagonalOffsets_succ (n : ℕ) :
     antidiagonalOffsets (n + 1) =
@@ -177,7 +180,7 @@ theorem antidiagonalOffsets_succ (n : ℕ) :
   congr 1
   omega
 
-/-- Equation (update), the signed candidate-window width. -/
+/-- Equation (23), the signed candidate-window width. -/
 theorem window_succ (n : ℕ) :
     window (n + 1) = window n + 1 - (rowAdvance n : ℤ) - (lowerDiagonalAdvance n : ℤ) := by
   have hm := rowReference_add_advance n
@@ -185,7 +188,7 @@ theorem window_succ (n : ℕ) :
   unfold window
   omega
 
-/-- Equation (update), the signed upper-count displacement, before rewriting
+/-- Equation (23), the signed upper-count displacement, before rewriting
 the count increment as the sum of the consumed column bits. -/
 theorem upperDisplacement_succ (n : ℕ) :
     upperDisplacement (n + 1) = upperDisplacement n + 1 - (rowAdvance n : ℤ) -
@@ -201,7 +204,7 @@ theorem upperCount_eq_pred_add_columnBit {n : ℕ} (hn : 0 < n) :
   simpa [columnBit] using upperCount_succ k
 
 /-- The column bits in a consumed actual word segment record precisely the
-increase in the upper count. This supplies `Δu` in equation (update). -/
+increase in the upper count. This supplies `Δu` in equation (23). -/
 theorem upperCount_add_segment_sum {m : ℕ} (hm : 0 < m) (length : ℕ) :
     upperCount (m - 1) + ((wordSegment m length).map Finite.upperBit).sum =
       upperCount (m + length - 1) := by
@@ -227,7 +230,7 @@ theorem countReference_succ {n : ℕ} (hn : 0 < n) :
   rw [rowReference_add_advance] at h
   exact h.symm
 
-/-- Equation (update), including the word-based computation of `Δu`. -/
+/-- Equation (23), including the word-based computation of `Δu`. -/
 theorem upperDisplacement_succ_word {n : ℕ} (hn : 0 < n) :
     upperDisplacement (n + 1) = upperDisplacement n + 1 - (rowAdvance n : ℤ) -
       (((wordSegment (rowReference n) (rowAdvance n)).map Finite.upperBit).sum : ℤ) := by
@@ -275,7 +278,7 @@ theorem occupied_row_iff_inserted_or_upper {n r : ℕ}
     · obtain ⟨i, hu, hrow⟩ := (upperRowBit_eq_one_iff _).mp hupper
       exact Finset.mem_image.mpr ⟨i, Finset.mem_range.mpr (by omega), hrow⟩
 
-/-- The actual advance `μ` is at most six under the bounds used by Lemma 16. -/
+/-- The actual advance `μ` is at most six under the bounds used by Lemma 17. -/
 theorem rowAdvance_le_six {n : ℕ} (hw : window n ≤ 4)
     (hR : rowOffsets n ⊆ Finset.Icc 1 4) : rowAdvance n ≤ 6 := by
   have h := rowReference_succ_le_add_six hw hR
@@ -283,7 +286,7 @@ theorem rowAdvance_le_six {n : ℕ} (hw : window n ≤ 4)
   omega
 
 /-- The actual row search stops at `μ`: its temporary lower-row record and
-actual upper-row bit are both zero there (Lemma 16). -/
+actual upper-row bit are both zero there (Lemma 17). -/
 theorem rowAdvance_free {n : ℕ} (hn : 0 < n) (hw : window n ≤ 4)
     (hR : rowOffsets n ⊆ Finset.Icc 1 4) (hcausal : rowReference n + 6 < n) :
     rowAdvance n ∉ insertedRowOffsets n ∧

@@ -6,9 +6,9 @@ import Mathlib.Tactic.NormNum
 /-!
 # The local calculation
 
-This file implements Definitions 9–11 and Algorithm 1 in Sections 4–5 of
+This file implements Definitions 10–12 and Algorithm 1 in Section 4 of
 *Greedy Queens and the Golden Ratio*. Histories are fixed-length base-four
-numbers (twelve symbols by default, forty for Corollary 19); finite sets of
+numbers (twelve symbols by default, forty for Corollary 20); finite sets of
 nonnegative offsets are bit masks. These representation
 choices follow the independent bit-mask verifier supplied with the paper.
 
@@ -17,42 +17,42 @@ empty request, a failed output check, or exhausted row-search fuel produces an
 explicit error. Thus successful verification cannot silently discard a branch.
 The separate certificate file checks that none of these failures occurs on its
 finite invariant. Relating these records to the infinite greedy board is the
-separate mathematical content of Lemma 16.
+separate mathematical content of Lemma 17.
 -/
 
 namespace Queens.Finite
 
-/-- Section 4.3: the default number of retained symbols. The calculation also
-accepts an explicit history length, as needed for Corollary 19. -/
+/-- Section 4.2: the default number of retained symbols. The calculation also
+accepts an explicit history length, as needed for Corollary 20. -/
 def historyLength : ℕ := 12
 
-/-- Definition 9: the upper-column bit of the symbol `2u + b`. -/
+/-- Definition 10: the upper-column bit of the symbol `2u + b`. -/
 def upperBit (symbol : ℕ) : ℕ := symbol / 2
 
-/-- Definition 9: the upper-row bit of the symbol `2u + b`. -/
+/-- Definition 10: the upper-row bit of the symbol `2u + b`. -/
 def rowBit (symbol : ℕ) : ℕ := symbol % 2
 
-/-- Definition 11: encode a word in base four, with its newest symbol last. -/
+/-- Definition 12: encode a word in base four, with its newest symbol last. -/
 def encode (word : List ℕ) : ℕ := word.foldl (fun h s => 4 * h + s) 0
 
-/-- Definition 11: decode a fixed-length base-four history, oldest symbol first. -/
+/-- Definition 12: decode a fixed-length base-four history, oldest symbol first. -/
 def decode (code : ℕ) : ℕ → List ℕ
   | 0 => []
   | length + 1 => decode (code / 4) length ++ [code % 4]
 
-/-- Definition 11: dropping the oldest symbol and appending a new symbol. -/
+/-- Definition 12: dropping the oldest symbol and appending a new symbol. -/
 def destination (history symbol : ℕ) (memory : ℕ := historyLength) : ℕ :=
   (4 * history + symbol) % 4 ^ memory
 
-/-- Section 4.2: test membership in a finite set represented by a bit mask. -/
+/-- Section 4.1: test membership in a finite set represented by a bit mask. -/
 def hasOffset (mask offset : ℕ) : Bool := (mask >>> offset) % 2 == 1
 
-/-- Section 4.2: the finite set represented by an offset bit mask. Every set
+/-- Section 4.1: the finite set represented by an offset bit mask. Every set
 bit has index below the mask itself; `mem_offsets` proves this representation exact. -/
 def offsets (mask : ℕ) : Finset ℕ :=
   (Finset.range mask).filter (fun offset => hasOffset mask offset = true)
 
-/-- Section 4.2: decoding a record preserves membership exactly. -/
+/-- Section 4.1: decoding a record preserves membership exactly. -/
 @[simp] theorem mem_offsets {mask offset : ℕ} :
     offset ∈ offsets mask ↔ hasOffset mask offset = true := by
   simp only [offsets, Finset.mem_filter, Finset.mem_range]
@@ -66,14 +66,14 @@ def offsets (mask : ℕ) : Finset ℕ :=
       simp [hasOffset, Nat.shiftRight_eq_div_pow, Nat.div_eq_of_lt hlt] at h
     exact lt_of_lt_of_le (Nat.lt_pow_self (by omega : 1 < 2)) hpow
 
-/-- Condition 15: a mask below 32 with zero low bit represents only offsets 1–4. -/
+/-- Condition 16: a mask below 32 with zero low bit represents only offsets 1–4. -/
 theorem offsets_subset_Icc {mask : ℕ} (hbound : mask < 32) (heven : mask % 2 = 0) :
     offsets mask ⊆ Finset.Icc 1 4 := by
   have hfinite : ∀ m : Fin 32, m.val % 2 = 0 → offsets m.val ⊆ Finset.Icc 1 4 := by
     decide
   exact hfinite ⟨mask, hbound⟩ heven
 
-/-- Condition 15: each bounded row or diagonal record contains at most four offsets. -/
+/-- Condition 16: each bounded row or diagonal record contains at most four offsets. -/
 theorem offsets_card_le_four {mask : ℕ} (hbound : mask < 32) (heven : mask % 2 = 0) :
     (offsets mask).card ≤ 4 := by
   have h := Finset.card_le_card (offsets_subset_Icc hbound heven)
@@ -83,48 +83,48 @@ theorem offsets_card_le_four {mask : ℕ} (hbound : mask < 32) (heven : mask % 2
 /-- Section 4.5: insert an offset into a bit-mask record. -/
 def insertOffset (mask offset : ℕ) : ℕ := mask ||| (1 <<< offset)
 
-/-- Definition 10: the eight local records; `R`, `D`, and `A` are bit masks.
+/-- Definition 11: the eight local records; `R`, `D`, and `A` are bit masks.
 `input` and `output` encode the two histories and `queue` stores symbols oldest first. -/
 structure State where
-  /-- Definition 10: the lower-candidate width `n - m - d`. -/
+  /-- Definition 11: the lower-candidate width `n - m - d`. -/
   w : ℤ
-  /-- Definition 10: displacement `n - m - U(m - 1)`. -/
+  /-- Definition 11: displacement `n - m - U(m - 1)`. -/
   z : ℤ
-  /-- Definition 10: retained lower-queen row offsets, measured from `m`. -/
+  /-- Definition 11: retained lower-queen row offsets, measured from `m`. -/
   R : ℕ
-  /-- Definition 10: retained lower-diagonal offsets, measured from `d`. -/
+  /-- Definition 11: retained lower-diagonal offsets, measured from `d`. -/
   D : ℕ
-  /-- Definition 10: retained lower-antidiagonal offsets, measured from `n + m`. -/
+  /-- Definition 11: retained lower-antidiagonal offsets, measured from `n + m`. -/
   A : ℕ
-  /-- Definition 10: the retained symbols immediately before `m`, encoded in base four. -/
+  /-- Definition 11: the retained symbols immediately before `m`, encoded in base four. -/
   input : ℕ
-  /-- Definition 10: already read symbols beginning at `m`, oldest first. -/
+  /-- Definition 11: already read symbols beginning at `m`, oldest first. -/
   queue : List ℕ
-  /-- Definition 10: the retained symbols immediately before `n`, encoded in base four. -/
+  /-- Definition 11: the retained symbols immediately before `n`, encoded in base four. -/
   output : ℕ
   deriving DecidableEq, BEq, Ord, Repr
 
-/-- Definition 11: the labels allowed after an encoded input history. -/
+/-- Definition 12: the labels allowed after an encoded input history. -/
 def HistoryGraph.answers (graph : HistoryGraph) (vertex : ℕ) : Option (List ℕ) := do
   let mask ← graph.lookup vertex
   pure ((List.range 4).filter (hasOffset mask))
 
-/-- Condition 15, in the bit-mask representation: the only permitted offsets
+/-- Condition 16, in the bit-mask representation: the only permitted offsets
 of `R` and `D` are 1, 2, 3, and 4. There is no lower bound on `w`. -/
 def Condition (s : State) : Prop :=
   s.w ≤ 4 ∧ -4 ≤ s.z ∧ s.z ≤ 5 ∧
   s.R < 32 ∧ s.R % 2 = 0 ∧ s.D < 32 ∧ s.D % 2 = 0
 
-/-- Condition 15 is decidable from its five numerical records. -/
+/-- Condition 16 is decidable from its five numerical records. -/
 instance (s : State) : Decidable (Condition s) := inferInstanceAs (Decidable (_ ∧ _))
 
-/-- Condition 15, translated from the executable masks to ordinary finite sets. -/
+/-- Condition 16, translated from the executable masks to ordinary finite sets. -/
 theorem Condition.offsets_subset {s : State} (h : Condition s) :
     offsets s.R ⊆ Finset.Icc 1 4 ∧ offsets s.D ⊆ Finset.Icc 1 4 :=
   ⟨offsets_subset_Icc h.2.2.2.1 h.2.2.2.2.1,
     offsets_subset_Icc h.2.2.2.2.2.1 h.2.2.2.2.2.2⟩
 
-/-- Section 6.4: Condition 15 bounds the local lower-diagonal discrepancy.
+/-- Section 6.4: Condition 16 bounds the local lower-diagonal discrepancy.
 Identifying this expression with `dⱼ - j` is the board rank identity of Section 4.1. -/
 theorem Condition.discrepancy_bound {s : State} (h : Condition s)
     {r : ℕ} (hr : (r : ℤ) ≤ s.w) : |s.w - r - (offsets s.D).card| ≤ (4 : ℤ) := by
@@ -190,17 +190,17 @@ def queueColumns (queue : List ℕ) : List (ℤ × ℤ) :=
     else none
 
 /-- Section 4.4: all retained upper sources, as the pairs `(h, Γ(h))` used in
-Propositions 12–13. History sources precede queue sources, oldest first. -/
+Propositions 13–14. History sources precede queue sources, oldest first. -/
 def upperColumns (s : State) (queue : List ℕ) (memory : ℕ := historyLength) :
     List (ℤ × ℤ) :=
   historyColumns (decode s.input memory) ++ queueColumns queue
 
-/-- Proposition 12: the stored upper-antidiagonal attack test. -/
+/-- Proposition 13: the stored upper-antidiagonal attack test. -/
 def antidiagonalAttack (s : State) (queue : List ℕ) (r : ℕ)
     (memory : ℕ := historyLength) : Bool :=
   (upperColumns s queue memory).any (fun (h, gamma) => 2 * h + gamma == s.z + r)
 
-/-- Section 4.4 and Proposition 13: the row-count adjustment `J(x)`. -/
+/-- Section 4.4 and Proposition 14: the row-count adjustment `J(x)`. -/
 def adjustment (s : State) (queue : List ℕ) (x : ℤ)
     (memory : ℕ := historyLength) : ℤ :=
   (((upperColumns s queue memory).filter
@@ -245,7 +245,7 @@ Searching through `mask + 1` is always enough, including for the empty record. -
 def diagonalAdvance (mask : ℕ) : ℕ :=
   ((List.range (mask + 1)).find? (fun h => !hasOffset mask h)).getD (mask + 1)
 
-/-- Equation (update), Section 4.5: construct the successor after inserting a
+/-- Equation (23), Section 4.5: construct the successor after inserting a
 choice and finding the reference advances. `queue` includes all symbols read by
 the row search; `mu` of them are consumed by the new input reference. -/
 def updateState (s : State) (rows diagonals antidiagonals nu mu : ℕ)
@@ -298,7 +298,7 @@ def initialState : State :=
     queue := [0, 0, 3, 2, 2, 3, 0, 1, 2, 1, 2]
     output := encode [3, 0, 0, 3, 2, 2, 3, 0, 1, 2, 1, 2] }
 
-/-- Section 6.1: the displayed starting record satisfies Condition 15. -/
+/-- Section 6.1: the displayed starting record satisfies Condition 16. -/
 theorem initialState_condition : Condition initialState := by decide
 
 end Queens.Finite

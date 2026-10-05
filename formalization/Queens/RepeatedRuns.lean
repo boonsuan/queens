@@ -3,7 +3,7 @@ import Queens.Finite.RepeatedRunCertificate
 import Queens.Finite.LowerRunWitnesses
 
 /-!
-# Runs of equal lower-run lengths: the third row of Corollary 19
+# Runs of equal lower-run lengths: the third row of Corollary 20
 
 The canonical sequence `lowerRunLength` is A275885. We contract the actual
 forty-symbol state path at the upper endpoints of successive lower runs, obtaining
@@ -30,7 +30,7 @@ private theorem actualFortyUpper_iff (j : ℕ) :
   rw [Finite.Forty.actualVertex_output]
   simp [columnBit, IsUpperColumnWithOrigin]
 
-/-- Appendix A: consecutive actual lower runs give a run-graph edge whenever
+/-- Appendix A3: consecutive actual lower runs give a run-graph edge whenever
 the first upper endpoint is covered by the forty-symbol state path. -/
 theorem lowerRuns_fortyRunEdge {k : ℕ} (hk : 79 ≤ lowerRunEnd k) :
     Finite.FortyRunEdge
@@ -76,7 +76,7 @@ theorem lowerRuns_fortyRunEdge {k : ℕ} (hk : 79 ≤ lowerRunEnd k) :
       simpa only [show 79 + (lowerRunEnd (k + 1) - 79) = lowerRunEnd (k + 1) by omega] using
         lowerRunEnd_upper (k + 1)
 
-/-- Appendix A: the A275885 terms beginning with term 24 (zero-based index 23)
+/-- Appendix A3: the A275885 terms beginning with term 24 (zero-based index 23)
 are the labels of an actual walk in the certified run graph. -/
 theorem lowerRunLength_follows_runGraph : Sequence.LabeledWalk Finite.FortyRunEdge
     (fun j => (Finite.Forty.actualVertex (lowerRunEnd (22 + j) - 79)).val)
@@ -95,7 +95,7 @@ private theorem runGraphVertex_upper (j : ℕ) :
   simpa only [show 79 + (lowerRunEnd (22 + j) - 79) = lowerRunEnd (22 + j) by omega] using
     lowerRunEnd_upper (22 + j)
 
-/-- Corollary 19: twelve consecutive terms of A275885 cannot all be equal.
+/-- Corollary 20: twelve consecutive terms of A275885 cannot all be equal.
 This excludes infinite constant tails as well as overly long finite repetitions. -/
 theorem no_twelve_equal_lower_run_lengths (start c : ℕ) :
     ¬∀ i : Fin 12, lowerRunLength (start + i.val) = c := by
@@ -125,7 +125,7 @@ theorem no_twelve_equal_lower_run_lengths (start c : ℕ) :
         (runGraphVertex_upper (start - 23)) hcmem hk)
     omega
 
-/-- Corollary 19: maximal repetitions whose start precedes the graph's safe
+/-- Corollary 20: maximal repetitions whose start precedes the graph's safe
 left boundary have an allowed length, by the checked actual-prefix table. -/
 theorem early_repeated_lower_run_length {start length c : ℕ}
     (hs : start < 24)
@@ -149,7 +149,7 @@ theorem early_repeated_lower_run_length {start length c : ℕ}
   unfold Finite.AllowedRepeatedRunLength
   omega
 
-/-- Corollary 19: every maximal run of equal lower-run lengths belongs to
+/-- Corollary 20: every maximal run of equal lower-run lengths belongs to
 `{1,…,9,11}`. In particular a maximal run of exactly ten equal terms is impossible. -/
 theorem repeated_lower_run_length_bound {start length c : ℕ}
     (h : Sequence.MaximalRun (fun k => lowerRunLength k = c) start length) :
@@ -164,7 +164,7 @@ theorem repeated_lower_run_length_bound {start length c : ℕ}
       lowerRunLength_follows_runGraph hcmem (by omega : 0 < start - 23)
       (h.shift (by omega : 23 ≤ start))
 
-/-- **Corollary 19, A275887:** the lengths of maximal runs of equal terms in
+/-- **Corollary 20, A275887:** the lengths of maximal runs of equal terms in
 the lower-column run sequence are exactly `{1,…,9,11}`. -/
 theorem repeated_lower_run_lengths (length : ℕ) :
     (∃ c start, Sequence.MaximalRun (fun k => lowerRunLength k = c) start length) ↔
@@ -179,7 +179,7 @@ theorem repeated_lower_run_lengths (length : ℕ) :
     apply (Sequence.maximalRun_congr (fun i hi => ?_)).mp hrun
     rw [Finite.lowerRunLength_eq_witness (by omega)]
 
-/-- **Corollary 19:** ten never occurs as the length of a maximal run of equal
+/-- **Corollary 20:** ten never occurs as the length of a maximal run of equal
 terms in A275885, although eleven does occur. -/
 theorem no_ten_repeated_lower_runs (c start : ℕ) :
     ¬Sequence.MaximalRun (fun k => lowerRunLength k = c) start 10 := by

@@ -5,22 +5,22 @@ import Queens.Finite.FortySeed
 /-!
 # The actual path in the forty-symbol state graph
 
-Corollary 19's refined graph must describe the actual infinite greedy process.
+Corollary 20's refined graph must describe the actual infinite greedy process.
 This file repeats the simultaneous induction of Section 6.4 from the checked
-board before column 80, using the generic longer-history version of Lemma 16.
+board before column 80, using the generic longer-history version of Lemma 17.
 It retains an indexed path, rather than just separate membership witnesses,
-so that Appendix A's contractions apply to consecutive actual states.
+so that Appendix A3's contractions apply to consecutive actual states.
 -/
 
 namespace Queens.Finite.Forty
 
-/-- Corollary 19: an indexed state at time `j` represents the board before
+/-- Corollary 20: an indexed state at time `j` represents the board before
 column `80 + j`, with the earlier actual word following the forty-symbol graph. -/
 def RepresentsAt (j : ℕ) (v : Vertex) : Prop :=
   StateRepresented (80 + j) (state v) 40 ∧
     FortyData.historyGraph.FollowsThrough queenSymbol (79 + j) 40
 
-/-- Corollary 19: the checked seed establishes the refined invariant at
+/-- Corollary 20: the checked seed establishes the refined invariant at
 vertex zero, before column eighty. -/
 theorem representsAt_zero :
     RepresentsAt 0 ⟨0, by rw [data_sizes.2.2.1]; omega⟩ := by
@@ -28,7 +28,7 @@ theorem representsAt_zero :
   · simpa only [Nat.add_zero, ← initialState_eq_state_zero] using initialState_represented
   · simpa only [Nat.add_zero] using queenWord_follows_through_seventyNine
 
-/-- Corollary 19: every represented refined state has an indexed successor
+/-- Corollary 20: every represented refined state has an indexed successor
 representing the actual next board. No arbitrary graph path is substituted
 for the greedy sequence in this induction. -/
 theorem RepresentsAt.next {j : ℕ} {v : Vertex} (h : RepresentsAt j v) :
@@ -57,22 +57,22 @@ private noncomputable def actualVertexWithProof : (j : ℕ) → {v : Vertex // R
       let h := (actualVertexWithProof j).property.next
       ⟨Classical.choose h, (Classical.choose_spec h).2⟩
 
-/-- Corollary 19: an indexed infinite path following the actual greedy board,
+/-- Corollary 20: an indexed infinite path following the actual greedy board,
 with time zero immediately before column 80. -/
 noncomputable def actualVertex (j : ℕ) : Vertex := (actualVertexWithProof j).val
 
-/-- Corollary 19: each vertex of the selected path faithfully represents its
+/-- Corollary 20: each vertex of the selected path faithfully represents its
 actual board and all earlier forty-symbol word windows. -/
 theorem actualVertex_represents (j : ℕ) : RepresentsAt j (actualVertex j) :=
   (actualVertexWithProof j).property
 
-/-- Appendix A: consecutive vertices of the actual path are connected by a
+/-- Appendix A3: consecutive vertices of the actual path are connected by a
 checked edge of the refined state graph. -/
 theorem actualVertex_step (j : ℕ) :
     (actualVertex (j + 1)).val ∈ successorIndices (actualVertex j) :=
   (Classical.choose_spec (actualVertexWithProof j).property.next).1
 
-/-- Appendix A: the output label of the indexed path is the actual column
+/-- Appendix A3: the output label of the indexed path is the actual column
 bit. Time zero records column 79, and each subsequent edge records the next
 column, giving the precise indexing needed when contracting lower runs. -/
 theorem actualVertex_output (j : ℕ) :

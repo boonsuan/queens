@@ -10,7 +10,7 @@ import Mathlib.Algebra.Order.Ring.Int
 Section 4.1 defines a least unused row and positive lower diagonal, together
 with offset records. These definitions use the actual sequence `Queens.q`.
 The local rank identity and the extraction of diagonal discrepancy from
-Condition 15 are proved here. Preservation of Condition 15 by Algorithm 1
+Condition 16 are proved here. Preservation of Condition 16 by Algorithm 1
 is a separate obligation.
 -/
 
@@ -60,28 +60,28 @@ Inserting zero makes ordinary least-excluded-value search positive. -/
 noncomputable def diagonalReference (n : ℕ) : ℕ :=
   leastUnused (insert 0 (lowerDiagonals n))
 
-/-- Signed width `w = n - m - d` of the candidate window, equation (window). -/
+/-- Signed width `w = n - m - d` of the candidate window, equation (11). -/
 noncomputable def window (n : ℕ) : ℤ :=
   (n : ℤ) - (rowReference n : ℤ) - (diagonalReference n : ℤ)
 
-/-- Upper-count reference `κ = U(m-1)` for the actual board, Section 4.2. -/
+/-- Upper-count reference `κ = U(m-1)` for the actual board, Section 4.4. -/
 noncomputable def countReference (n : ℕ) : ℕ := upperCount (rowReference n - 1)
 
-/-- Signed upper-record displacement `z = n - m - κ`, Definition 10. -/
+/-- Signed upper-record displacement `z = n - m - κ`, Definition 11. -/
 noncomputable def upperDisplacement (n : ℕ) : ℤ :=
   (n : ℤ) - (rowReference n : ℤ) - (countReference n : ℤ)
 
-/-- The actual row-offset record `R` from equation (sets). -/
+/-- The actual row-offset record `R` from equation (12). -/
 noncomputable def rowOffsets (n : ℕ) : Finset ℕ :=
   ((earlierLowerColumns n).filter (fun i => rowReference n ≤ q i)).image
     (fun i => q i - rowReference n)
 
-/-- The actual lower-diagonal-offset record `D` from equation (sets). -/
+/-- The actual lower-diagonal-offset record `D` from equation (12). -/
 noncomputable def diagonalOffsets (n : ℕ) : Finset ℕ :=
   ((lowerDiagonals n).filter (fun k => diagonalReference n ≤ k)).image
     (fun k => k - diagonalReference n)
 
-/-- The actual antidiagonal-offset record `A` from equation (sets). -/
+/-- The actual antidiagonal-offset record `A` from equation (12). -/
 noncomputable def antidiagonalOffsets (n : ℕ) : Finset ℕ :=
   ((earlierLowerColumns n).filter (fun i => n + rowReference n ≤ i + q i)).image
     (fun i => i + q i - (n + rowReference n))
@@ -182,7 +182,7 @@ theorem diagonalOffsets_card (n : ℕ) :
   have hb' := (Finset.mem_filter.mp hb).2
   omega
 
-/-- The first identity in equation (local-rank): the next lower rank is
+/-- The first identity in equation (13): the next lower rank is
 `j = d + |D|`, because precisely `d-1` smaller magnitudes have been used. -/
 theorem nextLowerRank_eq_reference_add_offsets (n : ℕ) :
     nextLowerRank n = diagonalReference n + (diagonalOffsets n).card := by
@@ -226,7 +226,7 @@ theorem rowOffset_le_window {n : ℕ} (hn : q n < n) : (rowOffset n : ℤ) ≤ w
   unfold rowOffset window
   omega
 
-/-- Equation (local-rank): the lower-diagonal discrepancy is exactly
+/-- Equation (13): the lower-diagonal discrepancy is exactly
 `w - r - |D|`, with all records defined from the actual greedy board. -/
 theorem local_rank_identity {n : ℕ} (_hn : q n < n) :
     (n : ℤ) - (q n : ℤ) - (nextLowerRank n : ℤ) =
@@ -236,13 +236,13 @@ theorem local_rank_identity {n : ℕ} (_hn : q n < n) :
   unfold window rowOffset
   omega
 
-/-- The portion of Condition 15 used for diagonal discrepancy:
+/-- The portion of Condition 16 used for diagonal discrepancy:
 `w ≤ 4` and `D ⊆ {1,2,3,4}`. The remaining bounds ensure sufficiency
 of the local step but are not needed for this arithmetic consequence. -/
 def DiagonalRecordBounds (n : ℕ) : Prop :=
   window n ≤ 4 ∧ diagonalOffsets n ⊆ Finset.Icc 1 4
 
-/-- Extraction of Lemma 5 from the actual-record bounds, as in Section 6.4.
+/-- Extraction of Lemma 6 from the actual-record bounds, as in Section 6.4.
 This theorem does not assume that an abstract finite state is the actual board. -/
 theorem discrepancy_of_record_bounds {n : ℕ} (hn : q n < n)
     (hbounds : DiagonalRecordBounds n) :

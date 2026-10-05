@@ -6,7 +6,7 @@ import Mathlib.Data.Nat.Nth
 
 The lower-column enumeration is chronological and zero-indexed: `lowerColumn k`
 is the paper's `xᴸₖ₊₁`. The counting identities and endpoint inequalities here
-provide the combinatorial inputs to Section 3, Lemma 7. Results about all ranks
+provide the combinatorial inputs to Section 3, Lemma 8. Results about all ranks
 take infinitude of the lower columns as an explicit hypothesis.
 -/
 
@@ -45,12 +45,12 @@ theorem count_lower_eq_lowerCount (n : ℕ) :
     have hbound := upperCount_le n
     by_cases hlower : q (n + 1) < n + 1
     · have hupper : ¬n + 1 < q (n + 1) := by omega
-      simp only [if_pos hlower, if_neg hupper]
+      simp only [ite_eq_left hlower, ite_eq_right hupper]
       omega
     · have hupper : n + 1 < q (n + 1) := by
         have hne := q_ne_self (show 0 < n + 1 by omega)
         omega
-      simp only [if_neg hlower, if_pos hupper]
+      simp only [ite_eq_right hlower, ite_eq_left hupper]
       omega
 
 /-- At the `k`th zero-based lower column, exactly `k + 1` lower queens
@@ -71,14 +71,14 @@ theorem lowerColumn_eq_upperCount_add_rank
   omega
 
 /-- The upper count at a lower column is the column minus its positive rank:
-`U(xᴸⱼ) = xᴸⱼ - j`, as used in equation (rank-row) of Section 3. -/
+`U(xᴸⱼ) = xᴸⱼ - j`, as used in equation (6) of Section 3. -/
 theorem upperCount_lowerColumn (hInfinite : Set.Infinite {n | q n < n}) (k : ℕ) :
     upperCount (lowerColumn k) = lowerColumn k - (k + 1) := by
   have hrank := lowerColumn_eq_upperCount_add_rank hInfinite k
   omega
 
 /-- The comparison sequence `tₖ = U(xᴸₖ₊₁)` is monotone, the order hypothesis
-needed by the sorting argument in Section 3, Lemma 6. -/
+needed by the sorting argument in Section 3, Lemma 7. -/
 theorem lowerColumn_upperCount_mono (hInfinite : Set.Infinite {n | q n < n}) :
     Monotone (fun k => upperCount (lowerColumn k)) :=
   upperCount_mono.comp (lowerColumn_strictMono hInfinite).monotone
@@ -101,7 +101,7 @@ theorem lower_row_count_discrepancy (hInfinite : Set.Infinite {n | q n < n})
   exact hdiag
 
 /-- If at least one lower queen has appeared, its last lower column is at
-most the current column. This is the left endpoint used in Lemma 7. -/
+most the current column. This is the left endpoint used in Lemma 8. -/
 theorem lowerColumn_left (n : ℕ) (hpositive : 0 < lowerCount n) :
     lowerColumn (lowerCount n - 1) ≤ n := by
   have hlt : lowerCount n - 1 < Nat.count (fun i => q i < i) (n + 1) := by
@@ -110,7 +110,7 @@ theorem lowerColumn_left (n : ℕ) (hpositive : 0 < lowerCount n) :
   exact Nat.le_of_lt_succ (Nat.nth_lt_of_lt_count hlt)
 
 /-- The next lower column lies strictly after the current column. This is
-the right endpoint used in Section 3, Lemma 7, also when the lower count is zero. -/
+the right endpoint used in Section 3, Lemma 8, also when the lower count is zero. -/
 theorem lowerColumn_right (hInfinite : Set.Infinite {n | q n < n}) (n : ℕ) :
     n < lowerColumn (lowerCount n) := by
   have h := Nat.le_nth_count hInfinite (n + 1)

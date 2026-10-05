@@ -3,7 +3,7 @@ import Queens.Finite.IndexedTree
 /-!
 # Kernel-efficient history tables
 
-Definition 11's finite graph is stored as a binary tree so that individual
+Definition 12's finite graph is stored as a binary tree so that individual
 lookups reduce along a short branch in the Lean kernel. The supplied data
 use balanced trees. Correctness does not assume balance or ordering: a
 successful lookup is proved to return a listed entry, and an unsuccessful
@@ -12,7 +12,7 @@ request rejects the entire calculation. Graph closure is checked separately.
 
 namespace Queens.Finite
 
-/-- Definition 11: the finite vertex-mask table, stored in a binary tree.
+/-- Definition 12: the finite vertex-mask table, stored in a binary tree.
 The tree shape affects evaluation cost but is not a trusted invariant. -/
 structure HistoryGraph where
   /-- The untrusted binary search layout of the vertex-mask pairs. -/
@@ -23,7 +23,7 @@ structure HistoryGraph where
 This view is used for graph closure and finite cardinality assertions. -/
 abbrev historyEntries : BinaryTree (ℕ × ℕ) → List (ℕ × ℕ) := indexedEntries
 
-/-- Definition 11: the entries of the finite history graph. -/
+/-- Definition 12: the entries of the finite history graph. -/
 def HistoryGraph.entries (graph : HistoryGraph) : List (ℕ × ℕ) :=
   historyEntries graph.tree
 
@@ -36,11 +36,11 @@ instance (graph : HistoryGraph) (P : ℕ × ℕ → Prop) [DecidablePred P] :
     Decidable (∀ entry ∈ graph, P entry) :=
   inferInstanceAs (Decidable (∀ entry ∈ graph.entries, P entry))
 
-/-- Map the entry list, for the vertex and edge counts in Proposition 17. -/
+/-- Map the entry list, for the vertex and edge counts in Proposition 18. -/
 def HistoryGraph.map {α : Type*} (graph : HistoryGraph) (f : ℕ × ℕ → α) : List α :=
   graph.entries.map f
 
-/-- Number of listed history vertices, as in Proposition 17. -/
+/-- Number of listed history vertices, as in Proposition 18. -/
 def HistoryGraph.length (graph : HistoryGraph) : ℕ := graph.entries.length
 
 /-- Search a proposed binary layout. Equality is checked before returning a
@@ -48,7 +48,7 @@ mask, so malformed layouts cannot fabricate a vertex-mask pair. -/
 abbrev historyLookup (vertex : ℕ) : BinaryTree (ℕ × ℕ) → Option ℕ :=
   indexedLookup vertex
 
-/-- Definition 11: find the allowed-symbol mask, failing when the proposed
+/-- Definition 12: find the allowed-symbol mask, failing when the proposed
 search layout does not supply that vertex. -/
 def HistoryGraph.lookup (graph : HistoryGraph) (vertex : ℕ) : Option ℕ :=
   historyLookup vertex graph.tree

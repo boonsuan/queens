@@ -4,14 +4,14 @@ import Queens.LocalUpdates
 /-!
 # Semantics of offset bit masks
 
-The records of Definition 10 are ordinary finite sets on the actual board and
+The records of Definition 11 are ordinary finite sets on the actual board and
 bit masks in Algorithm 1. These kernel-checked identities justify insertion,
 reference shifts, and the least-unused-diagonal search in the implementation.
 -/
 
 namespace Queens.Finite
 
-/-- Section 4.2: the offset-membership test is the standard natural-number bit test. -/
+/-- Section 4.1: the offset-membership test is the standard natural-number bit test. -/
 theorem hasOffset_eq_testBit (mask offset : ℕ) :
     hasOffset mask offset = mask.testBit offset := by
   simp [hasOffset, Nat.shiftRight_eq_div_pow, Nat.testBit_eq_decide_div_mod_eq,
@@ -36,7 +36,7 @@ theorem hasOffset_insertOffset (mask added offset : ℕ) :
     Bool.or_eq_true_iff, decide_eq_true_eq]
   exact or_comm.trans (or_congr eq_comm Iff.rfl)
 
-/-- Equation (update), Section 4.5: right shift implements truncation followed
+/-- Equation (23), Section 4.5: right shift implements truncation followed
 by subtraction of the new reference. -/
 theorem offsets_shiftRight (mask shift : ℕ) :
     offsets (mask >>> shift) = retainedOffsets shift (offsets mask) := by

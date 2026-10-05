@@ -1,8 +1,8 @@
-"""Upper bounds for the corollary "Column runs and gaps" and the forbidden gap factors.
+"""Upper bounds for Corollary 20 and the forbidden gap factors.
 
     python runs_and_gaps.py
 
-Proof of the corollary "Column runs and gaps", first paragraph. Project each symbol s = 2u + b of
+Proof of Corollary 20, first paragraph. Project each symbol s = 2u + b of
 the queen word to its column bit u = s >> 1. By the induction of
 Section 6.4, every twelve consecutive symbols sigma_i ... sigma_{i+11}
 (i >= 1) form a vertex of the twelve-symbol history graph. This program
@@ -18,7 +18,7 @@ of A275888: a gap word c_1 ... c_r between upper columns is the column
 pattern 1 0^(c_1 - 1) 1 ... 1 0^(c_r - 1) 1, which has at most twelve
 columns for each of these words, and none occurs in a projected vertex.
 
-Proof of the corollary "Column runs and gaps", second paragraph (A275887). In the run graph of the
+Proof of Corollary 20, second paragraph (A275887). In the run graph of the
 forty-symbol state graph (see graphs.py), the terms of A275885 after the
 start are the labels of a walk. For c = 1, 2, 3, the edges labeled c form an
 acyclic graph, so the lengths of the maximal runs of c's, bounded on both

@@ -1,7 +1,8 @@
 /* Scan the one-based sequence s(c)=q_(c-1)+1. Counts include the origin.
  *
- * This is the check of Knuth's ranges in the remark on 1-indexed
- * coordinates in Section 3 of the paper: every point must lie in
+ * This is the scan whose extreme deviations are quoted at the end of
+ * Section 6.6 of the paper. It also checks Knuth's ranges, which Theorem 2
+ * proves for every c: every point must lie in
  * [c/phi-3, c/phi+5] or in [c*phi-2, c*phi+1]. The scanner checks this
  * union and, separately, the lower interval for lower queens (s < c) and the
  * upper interval for upper queens (s > c), and records the least and

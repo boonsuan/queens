@@ -5,24 +5,24 @@ import Queens.Finite.Seed
 /-!
 # Following the actual queens forever
 
-This file formalizes the induction of Section 6.4 and its deduction of Lemma 5
-and Theorem 1. The one-step correspondence of Lemma 16 is stated explicitly as
+This file formalizes the induction of Section 6.4 and its deduction of Lemma 6
+and Theorem 1. The one-step correspondence of Lemma 17 is stated explicitly as
 `LocalStepExact` and is proved in `Queens.Exactness`. This separates the infinite
 induction from the operational details of the local calculation.
 
 All other inputs are proved: the seed is the actual board, the finite invariant
-is closed, its states satisfy Condition 15, and actual records satisfying those
+is closed, its states satisfy Condition 16, and actual records satisfying those
 bounds give the required discrepancy. The induction tracks the queen word as well
 as the represented state, because input requests use the previously verified word.
 -/
 
 namespace Queens
 
-/-- The precise one-step correspondence of **Lemma 16**. If all branches
+/-- The precise one-step correspondence of **Lemma 17**. If all branches
 of the finite calculation succeed, its successor list contains the actual next
 state, and its checked output extends the actual word's path in the history graph.
-The universal success hypothesis is supplied by Proposition 17 in the induction;
-it is not claimed to follow from Condition 15 alone. -/
+The universal success hypothesis is supplied by Proposition 18 in the induction;
+it is not claimed to follow from Condition 16 alone. -/
 def LocalStepExact : Prop :=
   ∀ (n : ℕ), 30 ≤ n → ∀ (s : Finite.State) (next : List Finite.State),
     StateRepresented n s → Finite.Condition s →
@@ -63,7 +63,7 @@ theorem actualInvariant_of_localStepExact (hexact : LocalStepExact)
   | succ n hn ih => exact ih.succ hexact hn
 
 /-- The local record's next rank agrees with the positive chronological rank
-at a lower column. This connects equation (local-rank) to Lemma 5. -/
+at a lower column. This connects equation (13) to Lemma 6. -/
 theorem nextLowerRank_lowerColumn (k : ℕ) :
     nextLowerRank (lowerColumn k) = k + 1 := by
   classical
@@ -72,7 +72,7 @@ theorem nextLowerRank_lowerColumn (k : ℕ) :
   exact congrArg (fun j => j + 1)
     (Nat.count_nth_of_infinite (infinite_lowerColumns q_surjective) k)
 
-/-- **Lemma 5**, conditional on one-step exactness. Early columns use the direct
+/-- **Lemma 6**, conditional on one-step exactness. Early columns use the direct
 greedy prefix check; later columns use the represented, certified state. -/
 theorem diagonalDiscrepancy_of_localStepExact (hexact : LocalStepExact) :
     DiagonalDiscrepancy 4 := by
@@ -96,7 +96,7 @@ theorem diagonalDiscrepancy_of_localStepExact (hexact : LocalStepExact) :
     exact_mod_cast h
 
 /-- **Theorem 1**, conditional on the single local semantic obligation of
-Lemma 16. The finite verification and all mathematical deductions are proved. -/
+Lemma 17. The finite verification and all mathematical deductions are proved. -/
 theorem main_of_localStepExact (hexact : LocalStepExact) (n : ℕ) :
     (n < q n → |(q n : ℝ) - (n : ℝ) * Real.goldenRatio| < 5 / Real.goldenRatio) ∧
     (q n < n → |(q n : ℝ) - (n : ℝ) / Real.goldenRatio| < 4 + 5 / Real.goldenRatio) :=

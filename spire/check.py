@@ -13,7 +13,7 @@ and spire-print (tower tables, 64-bit numbers) are two different programs: their
 agree up to 10^19, and agree with the last row that spire computes. Beyond 10^19 there is
 only spire-at. There its rows must agree however its chain of copies is aimed (--walk D starts
 the chain D columns early), and each row must lie as close to n phi or n / phi as the paper
-proves (Section 6): 1 - 4/phi < q_n - n phi < 2/phi, or -2 - 4/phi < q_n - n / phi < 4 + 1/phi.
+proves (Theorem 2): (19 sqrt 5 - 49)/8 < q_n - n phi < sqrt 5 - 1, or 15 - 8 sqrt 5 < q_n - n / phi < 13 - 4 sqrt 5.
 """
 import json
 import os
@@ -88,15 +88,16 @@ expect('spire-print 0 10^8 --binary, its summary', json.loads(call('spire-print'
 columns = (0, 1, 2, 29, 30, 47, 48, 49, 1000, 16383, 16384, 65535, 65536, 65537, 999999, 1234567, 9999999)
 at = run('reference', 10 ** 7, *columns)['at']
 single = [json.loads(line) for line in call('spire-at', *columns).stdout.splitlines()]
-expect('spire-at, %d columns below 10^7' % len(columns), {str(r['n']): r['q'] for r in single}, at)
+expect('spire-at, %d columns less than 10^7' % len(columns), {str(r['n']): r['q'] for r in single}, at)
 getcontext().prec = 1200
 phi = (1 + Decimal(5).sqrt()) / 2
 far = (10 ** 18, 10 ** 19 - 1, 2 ** 64 - 1, 2 ** 64, 2 ** 128 + 1, 10 ** 20, 10 ** 100, 3 ** 500, 10 ** 1000)
 single += [json.loads(line) for line in call('spire-at', *far).stdout.splitlines()]
 deviation = lambda r: r['q'] - r['n'] * (phi if r['near'] == 'n*phi' else 1 / phi)  # printed to 6 places
 expect('spire-at, its deviations (up to 10^1000)', [abs(r['deviation'] - float(deviation(r))) < 2e-6 for r in single], [True] * len(single))
-bounds = {'n*phi': (1 - 4 / phi, 2 / phi), 'n/phi': (-2 - 4 / phi, 4 + 1 / phi)}
-expect('spire-at, within the bounds of Section 6', [bounds[r['near']][0] < deviation(r) < bounds[r['near']][1] for r in single], [True] * len(single))
+root5 = Decimal(5).sqrt()
+bounds = {'n*phi': ((19 * root5 - 49) / 8, root5 - 1), 'n/phi': (15 - 8 * root5, 13 - 4 * root5)}
+expect('spire-at, within the bounds of Theorem 2', [bounds[r['near']][0] < deviation(r) < bounds[r['near']][1] for r in single], [True] * len(single))
 aimed = [[json.loads(line)['q'] for line in call('spire-at', '--walk', lead, *far).stdout.splitlines()] for lead in (0, 1000, 10 ** 6)]
 expect('spire-at, its chain aimed three ways', aimed[1:], aimed[:1] * 2)
 last = run('spire', 10 ** 10 + 1)['last']

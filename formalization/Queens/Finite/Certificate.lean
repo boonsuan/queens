@@ -3,7 +3,7 @@ import Queens.Finite.CertificateChunks
 /-!
 # The checked local invariant
 
-Proposition 17 follows from the separately kernel-checked bounded chunks.
+Proposition 18 follows from the separately kernel-checked bounded chunks.
 This file extracts semantic invariance and the reported finite graph counts.
 -/
 
@@ -18,13 +18,13 @@ set_option maxHeartbeats 20000000 in
 theorem initialState_certified : Certified initialState :=
   certified_of_lookupState (by decide +kernel)
 
-/-- Proposition 17: each certified state satisfies Condition 15. -/
+/-- Proposition 18: each certified state satisfies Condition 16. -/
 theorem certified_condition {s : State} (hs : Certified s) : Condition s := by
   obtain ⟨⟨i, hi⟩, rfl⟩ := hs
   have h := Array.all_eq_true.mp certificate_checked i hi
   exact of_decide_eq_true (Bool.and_eq_true_iff.mp h).1
 
-/-- Proposition 17: every branch succeeds and returns another certified state.
+/-- Proposition 18: every branch succeeds and returns another certified state.
 The existential records successful termination of the total calculation, so this
 statement cannot be satisfied by discarding an unsuccessful branch. -/
 theorem certified_successors {s : State} (hs : Certified s) :
@@ -41,11 +41,11 @@ theorem certified_successors {s : State} (hs : Certified s) :
       intro t ht
       exact certified_of_lookupState (List.all_eq_true.mp hn t ht)
 
-/-- Definition 14: one edge of the calculated local-state graph. -/
+/-- Definition 15: one edge of the calculated local-state graph. -/
 def Step (s t : State) : Prop :=
   ∃ next, calculate Data.historyGraph s = .ok next ∧ t ∈ next
 
-/-- Definition 14: every edge leaving a certified state stays in the certificate. -/
+/-- Definition 15: every edge leaving a certified state stays in the certificate. -/
 theorem certified_step {s t : State} (hs : Certified s) (hst : Step s t) :
     Certified t := by
   obtain ⟨next, hn, ht⟩ := hst
@@ -62,22 +62,22 @@ theorem reachable_certified {s : State}
   | refl => exact initialState_certified
   | tail _ hstep ih => exact certified_step ih hstep
 
-/-- Section 6.4: every locally reachable record satisfies Condition 15.
+/-- Section 6.4: every locally reachable record satisfies Condition 16.
 The additional assertion that the actual greedy board traces such a walk is
-exactly the separate semantic bridge in Lemma 16. -/
+exactly the separate semantic bridge in Lemma 17. -/
 theorem reachable_condition {s : State}
     (h : Relation.ReflTransGen Step initialState s) : Condition s :=
   certified_condition (reachable_certified h)
 
 set_option maxHeartbeats 20000000 in
 -- Kernel reduction checks the complete finite certificate at this declaration.
-/-- Proposition 17: the checked invariant table contains 7014 entries.
+/-- Proposition 18: the checked invariant table contains 7014 entries.
 Together with `states_nodup`, this counts distinct states. -/
 theorem states_size : Data.states.size = 7014 := by decide +kernel
 
 set_option maxHeartbeats 20000000 in
 -- Kernel reduction checks the complete finite certificate at this declaration.
-/-- Proposition 17: every state entry recovers its own index by lookup. This
+/-- Proposition 18: every state entry recovers its own index by lookup. This
 kernel check supplies both uniqueness and auxiliary witness identification. -/
 theorem stateIndex_lookup_checked : ∀ entry ∈ stateIndexEntries Data.stateIndex,
     lookupState entry.2 Data.stateIndex = some entry.1 := by
@@ -89,7 +89,7 @@ theorem stateIndex_lookup_checked : ∀ entry ∈ stateIndexEntries Data.stateIn
 
 set_option maxHeartbeats 20000000 in
 -- Kernel reduction checks the complete finite certificate at this declaration.
-/-- Proposition 17: the 7014 entries in the checked invariant are distinct. -/
+/-- Proposition 18: the 7014 entries in the checked invariant are distinct. -/
 theorem states_nodup : Data.states.toList.Nodup := by
   have hkeys : (stateIndexEntries Data.stateIndex).map Prod.fst = List.range 7014 := by
     decide +kernel

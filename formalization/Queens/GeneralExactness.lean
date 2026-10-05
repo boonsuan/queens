@@ -4,16 +4,16 @@ import Queens.Finite.FinishSemantics
 /-!
 # Correctness with a variable history length
 
-Lemma 16 uses twelve symbols to exclude old attacking sources. Retaining
+Lemma 17 uses twelve symbols to exclude old attacking sources. Retaining
 more symbols preserves those exclusions. This file therefore proves the local
 step for any history length at least twelve and any well-formed history graph.
-The twelve-symbol verification and Corollary 19's forty-symbol verification
+The twelve-symbol verification and Corollary 20's forty-symbol verification
 are instances of the same semantic theorem.
 -/
 
 namespace Queens
 
-/-- **Lemma 16, candidate phase**, also used in Proposition 21. Preliminary
+/-- **Lemma 17, candidate phase**, also used in Section 6.6. Preliminary
 queue extension and candidate selection retain the actual queen choice, with
 a queue long enough to finish the step and containing only determined symbols.
 This shared statement separates candidate selection from the final record update. -/
@@ -50,7 +50,7 @@ theorem local_choices_exact_of_memory {memory n : ℕ} {graph : Finite.HistoryGr
   exact ⟨choice, length, by dsimp [k] at hlength; omega,
     hlimit, hmatches, hchoicesSubset _ hchoice⟩
 
-/-- **Lemma 16 with longer histories**, as used in Corollary 19 and Appendix A.
+/-- **Lemma 17 with longer histories**, as used in Corollary 20 and Appendix A3.
 Every successful complete calculation retains the actual next board and
 extends the actual word's graph path. The lower bound on the upper-count
 reference remains twelve, independently of the retained history length. -/

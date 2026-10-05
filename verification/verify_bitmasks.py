@@ -158,6 +158,8 @@ def adjustment(columns, x):
 
 
 class Explorer:
+    """The calculation on packed states, with the counts that the program reports."""
+
     def __init__(self, graph):
         self.graph = graph
         self.stopped = 0

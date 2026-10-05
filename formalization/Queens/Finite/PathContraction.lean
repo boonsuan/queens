@@ -3,22 +3,22 @@ import Queens.LabeledRuns
 /-!
 # Bounded contraction of column paths
 
-The run graph in Appendix A contracts a block of upper columns followed by a
+The run graph in Appendix A3 contracts a block of upper columns followed by a
 nonempty block of lower columns and its next upper endpoint. The bounds already
-proved in Corollary 19 permit exhaustive, bounded searches. These lemmas prove
+proved in Corollary 20 permit exhaustive, bounded searches. These lemmas prove
 that every actual path of the prescribed form is retained by those searches.
 -/
 
 namespace Queens.Finite
 
-/-- Appendix A: a directed graph represented by finite successor lists. -/
+/-- Appendix A3: a directed graph represented by finite successor lists. -/
 abbrev Adjacency := ℕ → List ℕ
 
-/-- Appendix A: an infinite path in a finite adjacency presentation. -/
+/-- Appendix A3: an infinite path in a finite adjacency presentation. -/
 def Adjacency.IsPath (graph : Adjacency) (vertices : ℕ → ℕ) : Prop :=
   ∀ n, vertices (n + 1) ∈ graph (vertices n)
 
-/-- Appendix A: follow edges until first reaching a vertex satisfying `stop`,
+/-- Appendix A3: follow edges until first reaching a vertex satisfying `stop`,
 retaining its vertex and the number of edges. The search explores every branch
 up to `fuel`; exhaustion contributes no path. -/
 def firstHits (graph : Adjacency) (stop : ℕ → Bool) : ℕ → ℕ → List (ℕ × ℕ)
@@ -27,7 +27,7 @@ def firstHits (graph : Adjacency) (stop : ℕ → Bool) : ℕ → ℕ → List (
       if stop w then [(w, 1)] else
         (firstHits graph stop fuel w).map fun p => (p.1, p.2 + 1)
 
-/-- Appendix A: bounded first-hit search retains every path whose first
+/-- Appendix A3: bounded first-hit search retains every path whose first
 stopping vertex is reached within the supplied fuel. -/
 theorem firstHits_mem {graph : Adjacency} {stop : ℕ → Bool}
     {vertices : ℕ → ℕ} (hpath : graph.IsPath vertices) {fuel start length : ℕ}
@@ -65,14 +65,14 @@ theorem firstHits_mem {graph : Adjacency} {stop : ℕ → Bool}
       congr 1
       omega
 
-/-- Appendix A: skip at most `fuel - 1` upper outputs, then follow the first
+/-- Appendix A3: skip at most `fuel - 1` upper outputs, then follow the first
 lower output to its next upper endpoint. The edge label counts lower columns. -/
 def runTargets (graph : Adjacency) (upper : ℕ → Bool) : ℕ → ℕ → List (ℕ × ℕ)
   | 0, _ => []
   | fuel + 1, v => (graph v).flatMap fun w =>
       if upper w then runTargets graph upper fuel w else firstHits graph upper 3 w
 
-/-- Appendix A: every bounded upper-then-lower block is retained by the
+/-- Appendix A3: every bounded upper-then-lower block is retained by the
 contracted run graph, labeled by its number of lower columns. -/
 theorem runTargets_mem {graph : Adjacency} {upper : ℕ → Bool}
     {vertices : ℕ → ℕ} (hpath : graph.IsPath vertices) {fuel start distance length : ℕ}

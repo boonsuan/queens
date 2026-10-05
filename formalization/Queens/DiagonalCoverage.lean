@@ -3,7 +3,7 @@ import Queens.Exactness
 /-!
 # Every signed diagonal contains exactly one queen
 
-Corollary 18 follows from two unbounded references. The golden-ratio count
+Corollary 19 follows from two unbounded references. The golden-ratio count
 estimate makes the upper count unbounded. For lower diagonals, the certified
 bound `|D| ≤ 4` and the identity `j = d + |D|` make the least unused magnitude
 unbounded as chronological lower rank increases. The nonattacking property
@@ -14,7 +14,7 @@ namespace Queens
 
 open scoped goldenRatio
 
-/-- The upper count is unbounded, as used in Corollary 18. The proved
+/-- The upper count is unbounded, as used in Corollary 19. The proved
 golden-ratio estimate supplies an upper rank beyond any prescribed bound. -/
 theorem upperCount_unbounded (k : ℕ) : ∃ n, k ≤ upperCount n := by
   obtain ⟨n, hn⟩ := exists_nat_gt ((k : ℝ) * φ + 5)
@@ -32,7 +32,7 @@ theorem upperCount_unbounded (k : ℕ) : ∃ n, k ≤ upperCount n := by
   have hreal : (k : ℝ) < (upperCount n : ℝ) := by linarith
   exact_mod_cast hreal.le
 
-/-- Every positive upper diagonal is occupied. Lemma 2 identifies upper
+/-- Every positive upper diagonal is occupied. Lemma 3 identifies upper
 diagonals with upper ranks, and the upper count reaches every such rank. -/
 theorem exists_upper_diagonal (k : ℕ) (hk : 0 < k) :
     ∃ n, n < q n ∧ (q n : ℤ) - (n : ℤ) = (k : ℤ) := by
@@ -43,7 +43,7 @@ theorem exists_upper_diagonal (k : ℕ) (hk : 0 < k) :
 
 /-- Every positive lower-diagonal magnitude is occupied. The finite invariant
 keeps at most four used magnitudes above the least unused magnitude; hence the
-reference eventually passes every fixed positive magnitude (Corollary 18). -/
+reference eventually passes every fixed positive magnitude (Corollary 19). -/
 theorem exists_lower_diagonal (d : ℕ) (hd : 0 < d) :
     ∃ n, q n < n ∧ n - q n = d := by
   -- Pass the thirty-column seed and leave room for all four retained diagonals.
@@ -66,7 +66,7 @@ theorem exists_lower_diagonal (d : ℕ) (hd : 0 < d) :
   obtain ⟨n, hn, hdiag⟩ := Finset.mem_image.mp hused
   exact ⟨n, (Finset.mem_filter.mp hn).2, hdiag⟩
 
-/-- **Corollary 18, coverage.** Every integer occurs as the signed diagonal
+/-- **Corollary 19, coverage.** Every integer occurs as the signed diagonal
 `q n - n` of some greedy queen. Zero is occupied by the queen at the origin. -/
 theorem q_diagonal_surjective : Function.Surjective (fun n => (q n : ℤ) - (n : ℤ)) := by
   intro z
@@ -83,18 +83,18 @@ theorem q_diagonal_surjective : Function.Surjective (fun n => (q n : ℤ) - (n :
     change (q n : ℤ) - (n : ℤ) = Int.negSucc k
     omega
 
-/-- **Corollary 18 (diagonal coverage).** The signed-diagonal map is a
+/-- **Corollary 19 (diagonal coverage).** The signed-diagonal map is a
 bijection from natural column indices to all integers. -/
 theorem q_diagonal_bijective : Function.Bijective (fun n => (q n : ℤ) - (n : ℤ)) :=
   ⟨q_diagonal_injective, q_diagonal_surjective⟩
 
-/-- **Corollary 18**, expressed geometrically: every signed diagonal contains
+/-- **Corollary 19**, expressed geometrically: every signed diagonal contains
 exactly one queen of the greedy construction. -/
 theorem existsUnique_queen_on_diagonal (z : ℤ) : ∃! n, (q n : ℤ) - (n : ℤ) = z :=
   q_diagonal_bijective.existsUnique z
 
 /-- Chronological lower queens have distinct positive diagonal magnitudes,
-the injectivity part of Corollary 18's final assertion. -/
+the injectivity part of Corollary 19's final assertion. -/
 theorem lowerDiagonal_injective : Function.Injective lowerDiagonal := by
   intro i j hij
   apply (lowerColumn_strictMono (infinite_lowerColumns q_surjective)).injective
@@ -106,7 +106,7 @@ theorem lowerDiagonal_injective : Function.Injective lowerDiagonal := by
     (q (lowerColumn j) : ℤ) - (lowerColumn j : ℤ)
   omega
 
-/-- **Corollary 18, lower diagonals.** The chronological lower magnitudes
+/-- **Corollary 19, lower diagonals.** The chronological lower magnitudes
 enumerate the positive integers bijectively. -/
 theorem lowerDiagonal_bijOn : Set.BijOn lowerDiagonal Set.univ {d | 0 < d} := by
   refine ⟨?_, lowerDiagonal_injective.injOn, ?_⟩

@@ -29,7 +29,7 @@ def ExtendsActualWord (graph : HistoryGraph) (input m limit : ℕ)
       ∃ k', k ≤ k' ∧ request ≤ k' ∧ k' ≤ limit ∧ wordSegment m k' ∈ out
 
 /-- A successful row search retains the first actual free row. This is the
-operational row-search component of Section 5, Lemma 16; the queue extension
+operational row-search component of Section 5, Lemma 17; the queue extension
 hypothesis is supplied separately from the actual history-graph path. -/
 theorem findFreeRow_contains_actual {memory : ℕ} {graph : HistoryGraph}
     {input rows m limit target : ℕ}
@@ -74,7 +74,7 @@ theorem findFreeRow_contains_actual {memory : ℕ} {graph : HistoryGraph}
           · simp [hbit]
         have hrec : findFreeRow graph input rows fuel (start + 1) (wordSegment m k')
             (memory := memory) = .ok branch := by
-          simpa only [if_neg hnotfree] using hbranch
+          simpa only [ite_eq_right hnotfree] using hbranch
         obtain ⟨k'', hk'k'', htargetk, hk''limit, hmem⟩ :=
           ih (by omega) (by omega) hk'limit hrec
         exact ⟨k'', by omega, htargetk, hk''limit, hsubset _ hmem⟩

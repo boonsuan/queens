@@ -25,10 +25,10 @@ theorem ChoiceMatches.eq_actual {n : ℕ} {choice : Option ℕ} (hmatch : Choice
   cases choice with
   | none =>
     have hupper : n < q n := hmatch
-    rw [if_neg (by omega)]
+    rw [ite_eq_right (by omega)]
   | some r =>
     obtain ⟨hlower, hrow⟩ := hmatch
-    rw [if_pos hlower]
+    rw [ite_eq_left hlower]
     congr 1
     unfold rowOffset
     omega
@@ -47,7 +47,7 @@ private theorem mask_tests_of_available {n r memory : ℕ} {s : Finite.State}
 
 /-- One successful iteration on an actual queue either retains this available
 candidate, or retains a recursive continuation and this candidate is attacked.
-This is the local operational step in the choice part of Lemma 16. -/
+This is the local operational step in the choice part of Lemma 17. -/
 theorem chooseFrom_actual_step {memory : ℕ} {n remaining r k limit : ℕ}
     {s : Finite.State} {graph : Finite.HistoryGraph} {out : List Finite.Choice}
     (hrep : StateRepresented n s memory) (hn : 0 < n) (hcondition : Finite.Condition s)
@@ -74,7 +74,7 @@ theorem chooseFrom_actual_step {memory : ℕ} {n remaining r k limit : ℕ}
     · intro havailable
       obtain ⟨hR, hD, hA⟩ := hmask havailable
       simp only [hR, hD, hA, Bool.or_false, Bool.false_eq_true] at hblocked
-    · simpa only [Finite.chooseFrom, if_pos hblocked, Bind.bind, Except.bind] using hok
+    · simpa only [Finite.chooseFrom, ite_eq_left hblocked, Bind.bind, Except.bind] using hok
   · let request := (1 + max (r : ℤ) ((s.z + r) / 2)).toNat
     have hrequest_eq : (request : ℤ) = 1 + max (r : ℤ) ((s.z + r) / 2) := by
       dsimp [request]
@@ -85,7 +85,7 @@ theorem chooseFrom_actual_step {memory : ℕ} {n remaining r k limit : ℕ}
     cases hex : Finite.extendQueue (memory := memory) graph s.input (wordSegment (rowReference n) k)
         (1 + max (r : ℤ) ((s.z + r) / 2)) with
     | error e =>
-      simp only [Finite.chooseFrom, if_neg hblocked, hex, Bind.bind, Except.bind,
+      simp only [Finite.chooseFrom, ite_eq_right hblocked, hex, Bind.bind, Except.bind,
         reduceCtorEq] at hok
     | ok queues =>
       have hbranches : Finite.allBranches queues (fun queue =>
@@ -93,7 +93,7 @@ theorem chooseFrom_actual_step {memory : ℕ} {n remaining r k limit : ℕ}
               !Finite.antidiagonalAttack (memory := memory) s queue r then
             .ok [(some r, queue)]
           else Finite.chooseFrom (memory := memory) graph s remaining (r + 1) queue) = .ok out := by
-        simpa only [Finite.chooseFrom, if_neg hblocked, hex, Bind.bind, Except.bind] using hok
+        simpa only [Finite.chooseFrom, ite_eq_right hblocked, hex, Bind.bind, Except.bind] using hok
       obtain ⟨k', hkk', hrequest, hk'limit, hqueue⟩ :=
         hextends k request queues hk hrequestLimit (by simpa only [hrequest_eq] using hex)
       obtain ⟨branch, hbranch, hsubset⟩ := Finite.allBranches_branch hbranches hqueue
@@ -116,7 +116,7 @@ theorem chooseFrom_actual_step {memory : ℕ} {n remaining r k limit : ℕ}
           apply htests.mpr
           exact ⟨hR, hD, hA, hclear.1, by simpa using hclear.2⟩
         have houtput : [(some r, wordSegment (rowReference n) k')] = branch := by
-          simpa only [if_pos hclear, Except.ok.injEq] using hbranch
+          simpa only [ite_eq_left hclear, Except.ok.injEq] using hbranch
         refine ⟨havailable, k', hkk', hk'limit, hsubset _ ?_⟩
         rw [← houtput]
         simp
@@ -125,7 +125,7 @@ theorem chooseFrom_actual_step {memory : ℕ} {n remaining r k limit : ℕ}
         · intro havailable
           have h := htests.mp havailable
           exact hclear ⟨h.2.2.2.1, by simp [h.2.2.2.2]⟩
-        · simpa only [if_neg hclear] using hbranch
+        · simpa only [ite_eq_right hclear] using hbranch
 
 /-- A successful candidate loop retains the actual lower queen whenever
 the searched interval reaches its offset and begins at or before it. Earlier
@@ -192,7 +192,7 @@ theorem chooseFrom_contains_actual_upper {memory : ℕ} {n limit : ℕ}
         ih (fun r hrstart hrend => hwindow r (by omega) (by omega)) hk'limit hbranch
       exact ⟨k'', by omega, hk''limit, hsubset _ hmem⟩
 
-/-- **Lemma 16, candidate choice.** Starting at offset zero and testing the
+/-- **Lemma 17, candidate choice.** Starting at offset zero and testing the
 whole candidate window, the successful branching calculation contains a
 choice matching the actual greedy queen and an actual extended queue. -/
 theorem chooseFrom_contains_actual {memory : ℕ} {n k limit : ℕ}

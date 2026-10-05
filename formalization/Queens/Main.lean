@@ -8,12 +8,12 @@ import Queens.Sorting
 # The main bounds, conditional on diagonal discrepancy
 
 This file connects the actual greedy sequence to Sections 2 and 3 of the paper.
-The explicit hypothesis is precisely the bounded diagonal discrepancy of Lemma 5.
+The explicit hypothesis is precisely the bounded diagonal discrepancy of Lemma 6.
 `Queens.Exactness` proves that hypothesis and the unconditional main theorem.
 
-`main_of_diagonalDiscrepancy` proves Theorem 1 from Lemma 5. The more general
+`main_of_diagonalDiscrepancy` proves Theorem 1 from Lemma 6. The more general
 `position_bounds_of_diagonalDiscrepancy` keeps the discrepancy constant `C`,
-as in Proposition 8.
+as in Proposition 9.
 -/
 
 namespace Queens
@@ -21,12 +21,12 @@ namespace Queens
 open scoped goldenRatio
 
 /-- Magnitude of the lower diagonal at zero-based chronological rank `k`.
-This is `dₖ₊₁` in Section 3, Lemma 5. -/
+This is `dₖ₊₁` in Section 3, Lemma 6. -/
 noncomputable def lowerDiagonal (k : ℕ) : ℕ :=
   lowerColumn k - q (lowerColumn k)
 
 /-- The universal discrepancy hypothesis of Section 3, with the general
-constant of Proposition 8. Lemma 5 asserts `DiagonalDiscrepancy 4`. -/
+constant of Proposition 9. Lemma 6 asserts `DiagonalDiscrepancy 4`. -/
 def DiagonalDiscrepancy (C : ℕ) : Prop :=
   ∀ k, |(lowerDiagonal k : ℤ) - ((k : ℤ) + 1)| ≤ (C : ℤ)
 
@@ -37,7 +37,7 @@ theorem lowerDiagonal_cast (k : ℕ) :
   exact Nat.cast_sub (lowerColumn_lower (infinite_lowerColumns q_surjective) k).le
 
 /-- The sorted rank of a chronological lower row. This supplies an explicit
-rearrangement for the sorting step in Section 3, Lemma 6. -/
+rearrangement for the sorting step in Section 3, Lemma 7. -/
 noncomputable def lowerRowRank (k : ℕ) : ℕ := by
   classical
   exact Nat.count IsLowerRow (q (lowerColumn k))
@@ -66,7 +66,7 @@ theorem lowerRowRank_bijective : Function.Bijective lowerRowRank := by
     rw [sortedLowerRow_lowerRowRank, hk, hrow]
 
 /-- The permutation matching chronological lower rows with sorted lower
-rows, used in Lemma 6. -/
+rows, used in Lemma 7. -/
 noncomputable def lowerRowPermutation : Equiv.Perm ℕ :=
   Equiv.ofBijective lowerRowRank lowerRowRank_bijective
 
@@ -83,7 +83,7 @@ theorem chronological_row_discrepancy {C : ℕ} (hdiag : DiagonalDiscrepancy C)
   apply lower_row_count_discrepancy (infinite_lowerColumns q_surjective) k
   simpa only [lowerDiagonal_cast] using hdiag k
 
-/-- **Lemma 6, sorted-row bound.** Rearranging the chronological lower rows
+/-- **Lemma 7, sorted-row bound.** Rearranging the chronological lower rows
 preserves their discrepancy from `U(xᴸⱼ)`. -/
 theorem sorted_row_discrepancy {C : ℕ} (hdiag : DiagonalDiscrepancy C) (k : ℕ) :
     |(sortedLowerRow k : ℤ) - (upperCount (lowerColumn k) : ℤ)| ≤ (C : ℤ) := by
@@ -96,8 +96,8 @@ theorem sorted_row_discrepancy {C : ℕ} (hdiag : DiagonalDiscrepancy C) (k : �
   rw [sortedLowerRow_lowerRowPermutation]
   exact chronological_row_discrepancy hdiag i
 
-/-- **Lemma 6, lower-column bound.** Combining the sorted-row estimate with
-Lemma 4 gives the column estimate used in the counting recurrence. -/
+/-- **Lemma 7, lower-column bound.** Combining the sorted-row estimate with
+Lemma 5 gives the column estimate used in the counting recurrence. -/
 theorem lower_column_discrepancy {C : ℕ} (hdiag : DiagonalDiscrepancy C) (k : ℕ) :
     |(lowerColumn k : ℤ) - 2 * ((k + 1 : ℕ) : ℤ) - (upperCount k : ℤ)| ≤ (C : ℤ) := by
   have hsplit : (lowerColumn k : ℤ) = (upperCount (lowerColumn k) : ℤ) + (k : ℤ) + 1 := by
@@ -110,7 +110,7 @@ theorem lower_column_discrepancy {C : ℕ} (hdiag : DiagonalDiscrepancy C) (k : 
   rw [heq, abs_neg]
   exact sorted_row_discrepancy hdiag k
 
-/-- **Lemma 7 for the greedy queens sequence.** The explicit input is the diagonal
+/-- **Lemma 8 for the greedy queens sequence.** The explicit input is the diagonal
 discrepancy bound; all counting and endpoint facts are proved. -/
 theorem countDefect_le_of_diagonalDiscrepancy {C : ℕ}
     (hdiag : DiagonalDiscrepancy C) (n : ℕ) :
@@ -129,7 +129,7 @@ theorem countDefect_le_of_diagonalDiscrepancy {C : ℕ}
     simpa only [Nat.sub_add_cancel (show 1 ≤ j by omega)] using
       lower_column_discrepancy hdiag (j - 1)
 
-/-- **Proposition 8, count estimate.** Diagonal discrepancy controls the
+/-- **Proposition 9, count estimate.** Diagonal discrepancy controls the
 distance of the actual greedy upper count from the golden-ratio slope. -/
 theorem upperCount_error_of_diagonalDiscrepancy {C : ℕ}
     (hdiag : DiagonalDiscrepancy C) (n : ℕ) :
@@ -137,7 +137,7 @@ theorem upperCount_error_of_diagonalDiscrepancy {C : ℕ}
   count_error_lt upperCount C upperCount_zero upperCount_le
     (fun _ hn => upperCount_pos hn) (countDefect_le_of_diagonalDiscrepancy hdiag) n
 
-/-- **Proposition 8, queen positions.** For the actual greedy construction,
+/-- **Proposition 9, queen positions.** For the actual greedy construction,
 the two golden-ratio bounds follow from the universal discrepancy bound. -/
 theorem position_bounds_of_diagonalDiscrepancy {C : ℕ}
     (hdiag : DiagonalDiscrepancy C) (n : ℕ) :
@@ -155,7 +155,7 @@ theorem position_bounds_of_diagonalDiscrepancy {C : ℕ}
     simpa only [div_eq_mul_inv, mul_comm] using
       lower_position_error_lt upperCount (q n) n (C : ℝ) _ hlower hcount
 
-/-- **Theorem 1 from Lemma 5.** This separates the pure mathematical deduction
+/-- **Theorem 1 from Lemma 6.** This separates the pure mathematical deduction
 from the finite verification. `Queens.main` in `Exactness` supplies the proved
 diagonal discrepancy and removes the hypothesis. -/
 theorem main_of_diagonalDiscrepancy (hdiag : DiagonalDiscrepancy 4) (n : ℕ) :

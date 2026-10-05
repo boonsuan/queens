@@ -3,7 +3,7 @@ import Queens.Finite.Encoding
 /-!
 # Structural properties of retained upper sources
 
-Section 4.4 and Propositions 12–13 use one record per retained upper column.
+Section 4.4 and Propositions 13–14 use one record per retained upper column.
 These lemmas show that the executable source list has no duplicate source
 offsets, and expose the two ordinary counts defining the adjustment `J`.
 -/
@@ -86,7 +86,7 @@ theorem upperColumns_nodup (s : State) (queue : List ℕ)
     (upperColumns s queue (memory := memory)).Nodup :=
   List.Nodup.of_map Prod.fst (upperColumns_offsets_nodup s queue (memory := memory))
 
-/-- Proposition 13: the executable adjustment is precisely the count of queue
+/-- Proposition 14: the executable adjustment is precisely the count of queue
 sources below the row threshold minus history sources above that threshold. -/
 theorem adjustment_eq_counts (s : State) (queue : List ℕ) (x : ℤ)
     (memory : ℕ := historyLength) :

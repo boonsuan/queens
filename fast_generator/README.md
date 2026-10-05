@@ -10,9 +10,10 @@ and checksummed ten billion rows in 25.413 s with a peak resident memory of
 Knuth's `infty-queens`.
 
 The directory also contains the table builder and its finite checks, the
-Knuth comparator, the benchmark tools, the scanner used to check Knuth's
-ranges through c = 10<sup>11</sup> (the remark on 1-indexed coordinates in
-Section 3), and the records of both measurements.
+Knuth comparator, the benchmark tools, the scanner of the first 10<sup>11</sup>
+columns whose extreme deviations are quoted at the end of Section 6.6 (and
+which also checks Knuth's ranges there), and the records of both
+measurements.
 [REPORT.md](REPORT.md) describes the measurements in full.
 
 ## How the code follows Section 7
@@ -268,8 +269,9 @@ python3 tests/check_bounds_results.py            # checks the recorded scan
 
 For every column c ≤ 10<sup>11</sup> the scanner checks that s(c) = q<sub>c−1</sub> + 1
 lies in [c/φ − 3, c/φ + 5] ∪ [cφ − 2, cφ + 1], and also checks each interval
-on its own side of the diagonal. It records the extreme deviations with the
-queens attaining them. Comparisons that floating-point arithmetic cannot
+on its own side of the diagonal. Theorem 2 of the paper proves these ranges
+for every c; the scan records the extreme deviations, with the queens
+attaining them, which Section 6.6 compares with the constants of Theorem 2. Comparisons that floating-point arithmetic cannot
 decide with a proved error bound are made exactly, with 128-bit integers.
 The recorded scan took 11 minutes on a desktop machine; its results are in
 REPORT.md.

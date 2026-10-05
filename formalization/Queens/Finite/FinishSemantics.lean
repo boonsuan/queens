@@ -44,7 +44,7 @@ theorem HistoryGraph.followsThrough_succ {memory : ℕ} {graph : HistoryGraph} {
     exact ⟨hnew, fun h => False.elim (by omega)⟩
 
 /-- The symbol formed from the actual upper/lower choice and the actual row
-bit is exactly Definition 9's queen-word symbol. -/
+bit is exactly Definition 10's queen-word symbol. -/
 theorem choice_symbol_eq {n : ℕ} (hn : 0 < n) {choice : Option ℕ}
     (hchoice : choice = if q n < n then some (rowOffset n) else none) :
     (if choice.isSome then 0 else 2) + upperRowBit n = queenSymbol n := by
@@ -58,8 +58,8 @@ theorem choice_symbol_eq {n : ℕ} (hn : 0 < n) {choice : Option ℕ}
 
 /-- A successful finish of the actual queen choice contains the actual next
 state and extends the verified queen-word path. This is the final operational
-part of Section 5, Lemma 16, generalized to any memory of at least twelve symbols
-for the forty-symbol construction of Corollary 19. The geometric count bound
+part of Section 5, Lemma 17, generalized to any memory of at least twelve symbols
+for the forty-symbol construction of Corollary 20. The geometric count bound
 remains twelve, independently of the larger memory. -/
 theorem finishChoice_contains_actual_of_extensions_general {memory : ℕ}
     {graph : HistoryGraph} {n length : ℕ} {s : State} {choice : Option ℕ}
@@ -89,7 +89,7 @@ theorem finishChoice_contains_actual_of_extensions_general {memory : ℕ}
   let antidiagonals := choice.elim s.A (insertOffset s.A)
   have hnu : diagonalAdvance diagonals = lowerDiagonalAdvance n := diagonalAdvance_actual hmasks.2.1
   unfold finishChoice at hok
-  simp only [hbit, if_neg hvalid, Int.toNat_natCast, hsymbol] at hok
+  simp only [hbit, ite_eq_right hvalid, Int.toNat_natCast, hsymbol] at hok
   cases hlookup : graph.lookup s.output with
   | none =>
     simp only [hlookup] at hok
@@ -99,7 +99,7 @@ theorem finishChoice_contains_actual_of_extensions_general {memory : ℕ}
     have hallowed : hasOffset mask (queenSymbol n) = true := by
       by_contra h
       have hfalse : hasOffset mask (queenSymbol n) = false := by simpa using h
-      simp only [hlookup, hfalse, Bool.not_false, if_true] at hok
+      simp only [hlookup, hfalse, Bool.not_false, ite_true] at hok
       change (Except.error Failure.missingOutputEdge : Except Failure (List State)) = .ok out at hok
       cases hok
     have hword' : graph.FollowsThrough queenSymbol n (memory := memory) := by
@@ -107,7 +107,7 @@ theorem finishChoice_contains_actual_of_extensions_general {memory : ℕ}
       apply HistoryGraph.followsThrough_succ hgraph (by omega) hword
       · rwa [hout]
       · exact hallowed
-    simp only [hlookup, hallowed, Bool.not_true, Bool.false_eq_true, if_false] at hok
+    simp only [hlookup, hallowed, Bool.not_true, Bool.false_eq_true, ite_false] at hok
     change (findFreeRow graph s.input rows 8 0
       (wordSegment (rowReference n) length) (memory := memory) >>= fun advances =>
       pure (advances.map (fun (mu, queue) =>
@@ -167,7 +167,7 @@ theorem finishChoice_contains_actual_of_extensions_general {memory : ℕ}
         · rfl
 
 /-- The finishing stage specialized to twelve-symbol histories after column
-30. This wrapper supplies the numerical starting bounds used in Lemma 16. -/
+30. This wrapper supplies the numerical starting bounds used in Lemma 17. -/
 theorem finishChoice_contains_actual_of_extensions {graph : HistoryGraph}
     {n length : ℕ} {s : State} {choice : Option ℕ} {out : List State}
     (hn : 30 ≤ n) (hrep : StateRepresented n s) (hc : Condition s)

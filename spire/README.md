@@ -263,10 +263,10 @@ words, and 1/φ is computed to 4 224 bits when the program starts, from the inte
 of 5. For n = 10<sup>100</sup> the chain has about 460 copies, and the row takes 9 ms.
 
 The rows it finds show the paper's theorem at sizes no one could reach one row at a time.
-Section 6 proves that
+Theorem 2 of the paper (Section 6.6) proves that
 
-    1 − 4/φ < q_n − nφ < 2/φ          (−1.472 to 1.236)   if q_n > n,
-    −2 − 4/φ < q_n − n/φ < 4 + 1/φ    (−4.472 to 4.618)   if q_n < n.
+    (19√5 − 49)/8 < q_n − nφ < √5 − 1     (−0.814 to 1.236)   if q_n > n,
+    15 − 8√5 < q_n − n/φ < 13 − 4√5       (−2.889 to 4.056)   if q_n < n.
 
 Among 100 000 random columns between 10<sup>18</sup> and 10<sup>19</sup>, 61.9% of the queens are
 upper (1/φ = 61.8%), their deviations running from −0.760 to 1.230, and the lower ones from
@@ -391,7 +391,8 @@ outline:
   follows the paper's forty-symbol history graph (Appendix A3), and along every path of that
   graph, from every state the process can reach, one record is left within 58 symbols.
 - A copy started where Spire starts it is always 508 to 543 columns before its target, by the
-  paper's bounds on U(x) − x/φ (Proposition 21), so it never starts too late.
+  bounds on U(x) − x/φ that the window bounds of the paper's Section 6.6 give (F6 of
+  [spire-at.md](spire-at.md)), so it never starts too late.
 
 That the code is right, `make check` tests:
 
@@ -406,7 +407,7 @@ That the code is right, `make check` tests:
   hash formula) against the rows it wrote;
 - beyond 10<sup>19</sup>, `spire-at` against itself with its chain aimed three different ways
   (`--walk D` starts it D columns early), and every row it finds, up to 10<sup>1000</sup>,
-  against the bounds of Section 6.
+  against the bounds of Theorem 2.
 
 ## Discussion
 

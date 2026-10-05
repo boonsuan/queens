@@ -14,8 +14,10 @@ DECL = re.compile(
     r"(?:def|theorem|lemma|structure|inductive|abbrev)\s+([^\s({:]+)",
     re.MULTILINE,
 )
+# A docstring ends at its first "-/", so the docstring of a private helper is
+# never carried over to the next public declaration.
 DOCUMENTED = re.compile(
-    r"/--(?P<doc>.*?)-/\s*(?:@\[[^\]]*\]\s*)?"
+    r"/--(?P<doc>(?:(?!-/).)*)-/\s*(?:@\[[^\]]*\]\s*)?"
     r"(?:noncomputable\s+)?(?:def|theorem|lemma|structure|inductive|abbrev)"
     r"\s+(?P<name>[^\s({:]+)",
     re.DOTALL,
@@ -34,7 +36,7 @@ def main():
     ]
     count = 0
     for path in sorted((ROOT / "Queens").rglob("*.lean")):
-        source = path.read_text()
+        source = path.read_text(encoding="utf-8")
         documented = {m["name"]: m["doc"] for m in DOCUMENTED.finditer(source)}
         declarations = list(DECL.finditer(source))
         missing = [m[1] for m in declarations if m[1] not in documented]
@@ -42,7 +44,7 @@ def main():
             raise SystemExit(f"Undocumented declarations in {path}: {missing}")
         if not declarations:
             continue
-        relative = path.relative_to(ROOT)
+        relative = path.relative_to(ROOT).as_posix()
         lines += [f"## `{relative}`", "", "| Declaration | Purpose and paper correspondence |",
                   "|---|---|"]
         for decl in declarations:
@@ -55,7 +57,7 @@ def main():
         lines.append("")
     destination = ROOT / "docs" / "DECLARATIONS.md"
     destination.parent.mkdir(exist_ok=True)
-    destination.write_text("\n".join(lines))
+    destination.write_text("\n".join(lines), encoding="utf-8", newline="\n")
     print(f"Indexed {count} documented public declarations in {destination.relative_to(ROOT)}")
 
 

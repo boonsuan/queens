@@ -4,7 +4,7 @@ import Queens.Finite.RepeatedRunChecks
 # Soundness of the checked repeated-run certificate
 
 This file turns the finite kernel checks into the generic labeled-path
-certificate used for the third row of Corollary 19.
+certificate used for the third row of Corollary 20.
 -/
 
 namespace Queens.Finite
@@ -22,7 +22,7 @@ theorem repeatedRunTree_lookup_exists {v : ℕ} (hv : v < FortyData.states.size)
       (fun s => decide (upperBit (s.output % 4) = 1))).length by simpa using hv)
   exact ⟨a, ha⟩
 
-/-- Corollary 19: the fast upper bit is the actual output bit of the numbered
+/-- Corollary 20: the fast upper bit is the actual output bit of the numbered
 state in the original forty-symbol certificate. -/
 theorem fortyStateUpper_eq {v : ℕ} (hv : v < FortyData.states.size) :
     fortyStateUpper v = decide (upperBit (FortyData.states[v].output % 4) = 1) := by
@@ -32,7 +32,7 @@ theorem fortyStateUpper_eq {v : ℕ} (hv : v < FortyData.states.size) :
   simp [hv] at h
   simpa [fortyStateUpper, ha] using h.symm
 
-/-- Appendix A: the fast run-graph adjacency agrees with every successor list
+/-- Appendix A3: the fast run-graph adjacency agrees with every successor list
 used in the independently checked forty-symbol state graph. -/
 theorem fortyRunAdjacency_eq {v : ℕ} (hv : v < FortyData.states.size) :
     fortyRunAdjacency v = FortyData.successors[v]?.getD [] := by
@@ -50,7 +50,7 @@ private theorem repeatedRunVertex_checked {v : ℕ}
   apply h
   simpa [fortyStateUpper, he] using hu
 
-/-- Corollary 19: the finite checks instantiate the generic, proved certificate
+/-- Corollary 20: the finite checks instantiate the generic, proved certificate
 for runs in a labeled walk. The allowed set here is the union needed by A275887. -/
 def repeatedRunCertificate : Sequence.RunLengthCertificate FortyRunEdge {1, 2, 3}
     (fun _ => {k | AllowedRepeatedRunLength k}) where
@@ -77,7 +77,7 @@ def repeatedRunCertificate : Sequence.RunLengthCertificate FortyRunEdge {1, 2, 3
     exact (hcheck c hc').2 hd |>.2 k hk' hkpos
 
 
-/-- Corollary 19: every upper-state certificate has a possible remaining
+/-- Corollary 20: every upper-state certificate has a possible remaining
 length for each run label. This rules out a constant infinite tail rather than
 merely restricting already-terminated runs. -/
 theorem repeatedRunLengths_nonempty {v c : ℕ}
@@ -88,7 +88,7 @@ theorem repeatedRunLengths_nonempty {v c : ℕ}
   obtain ⟨k, hk⟩ := List.exists_mem_of_ne_nil _ ((repeatedRunVertex_checked hv hu).1 c hc').1
   exact ⟨k, by simpa [repeatedRunCertificate] using hk⟩
 
-/-- Corollary 19: all remaining lengths in an upper-state certificate are at
+/-- Corollary 20: all remaining lengths in an upper-state certificate are at
 most eleven, supplying a uniform bound on constant-labeled finite paths. -/
 theorem repeatedRunLengths_le_eleven {v c k : ℕ}
     (hv : ∃ entry, indexedLookup v repeatedRunTree = some entry)

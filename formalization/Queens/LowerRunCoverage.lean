@@ -3,7 +3,7 @@ import Queens.LowerRuns
 /-!
 # Completeness of the lower-run enumeration
 
-Corollary 19 describes both maximal lower-column intervals and their ordered
+Corollary 20 describes both maximal lower-column intervals and their ordered
 length sequence A275885. This file proves that the canonical enumeration in
 `LowerRuns` lists every maximal lower run, exactly once. Thus the run-length
 sequence used for A275887 has precisely the intended meaning.
@@ -55,7 +55,7 @@ theorem existsUnique_lowerRun_contains {n : ℕ} (hn : q n < n) :
   · have := lowerRunEnd_lt_start_of_lt hgt
     omega
 
-/-- **Corollary 19, enumeration correspondence.** Every maximal lower-column
+/-- **Corollary 20, enumeration correspondence.** Every maximal lower-column
 run is one of the canonical intervals used to define A275885, and conversely. -/
 theorem maximal_lower_run_iff {start length : ℕ} :
     Sequence.MaximalRun (fun n => q n < n) start length ↔
@@ -84,7 +84,7 @@ theorem existsUnique_lowerRun_of_maximal {start length : ℕ}
   intro j hj
   exact lowerRunStart_strictMono.injective (hj.1.symm.trans hk.1)
 
-/-- **Corollary 19, A275885 in sequence form:** the range of the canonical
+/-- **Corollary 20, A275885 in sequence form:** the range of the canonical
 lower-run length sequence is exactly `{1, 2, 3}`. -/
 theorem lowerRunLength_range (length : ℕ) :
     (∃ k, lowerRunLength k = length) ↔ length ∈ Finset.Icc 1 3 := by

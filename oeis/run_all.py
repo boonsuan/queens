@@ -7,14 +7,17 @@ In order: construct the forty-symbol history graph and explore both state
 graphs (graphs.py); derive the run and gap bounds (runs_and_gaps.py), the
 return words and faithful words (return_words.py), and the distances between
 consecutive 4s (four_gaps.py); then check the occurrence witnesses in the
-actual queens (witnesses.py). Any failed check stops the run with an error.
-The results are written to results/. It takes about a minute.
+actual queens (witnesses.py), and count exactly which windows and states of
+the twelve-symbol graphs are actual (actual_counts.py). Any failed check
+stops the run with an error. The results are written to results/. It takes
+about a minute and a half.
 """
 from __future__ import annotations
 
 import sys
 import time
 
+import actual_counts
 import four_gaps
 import graphs
 import return_words
@@ -27,6 +30,7 @@ STEPS = [
     ('Return words to 3 (return_words.py)', return_words.run),
     ('Consecutive 4s (four_gaps.py)', four_gaps.run),
     ('Occurrence witnesses (witnesses.py)', witnesses.run),
+    ('Actual windows and states (actual_counts.py)', actual_counts.run),
 ]
 
 

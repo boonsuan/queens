@@ -3,9 +3,9 @@ import Queens.Finite.RunBounds
 import Queens.Finite.RunWitnesses
 
 /-!
-# The basic column runs and gaps of Corollary 19
+# The basic column runs and gaps of Corollary 20
 
-This file proves the first, second, fourth, and fifth rows of Corollary 19.
+This file proves the first, second, fourth, and fifth rows of Corollary 20.
 Exclusion comes from the actual queen word following the twelve-symbol graph;
 attainment comes from independently checked actual greedy queens. In keeping
 with the paper and the OEIS entries, the origin is counted as an upper column.
@@ -13,11 +13,11 @@ with the paper and the OEIS entries, the origin is counted as an upper column.
 
 namespace Queens
 
-/-- Corollary 19: upper-column membership with the origin included, as required
+/-- Corollary 20: upper-column membership with the origin included, as required
 by A275886 and A275888. Away from zero this is the usual strict upper condition. -/
 def IsUpperColumnWithOrigin (n : ℕ) : Prop := n = 0 ∨ n < q n
 
-/-- Corollary 19: lower columns are exactly the complement of upper columns
+/-- Corollary 20: lower columns are exactly the complement of upper columns
 when the origin is counted as upper. -/
 theorem not_upperColumnWithOrigin_iff (n : ℕ) :
     ¬IsUpperColumnWithOrigin n ↔ q n < n := by
@@ -57,7 +57,7 @@ private theorem decoded_history_symbol (start : ℕ) {i : ℕ}
   rw [hdecode]
   simp [wordSegment, hi]
 
-/-- Corollary 19: four consecutive lower columns never occur. The origin is
+/-- Corollary 20: four consecutive lower columns never occur. The origin is
 handled directly; every positive-index block lies in a certified history. -/
 theorem no_four_lower_columns (start : ℕ) :
     ¬∀ i : Fin 4, q (start + i.val) < start + i.val := by
@@ -74,7 +74,7 @@ theorem no_four_lower_columns (start : ℕ) :
     have hnot : ¬ start + i.val < q (start + i.val) := by omega
     exact hi (by simp [columnBit, hnot])
 
-/-- Corollary 19: six consecutive upper columns never occur, including a
+/-- Corollary 20: six consecutive upper columns never occur, including a
 possible run starting at the origin. -/
 theorem no_six_upper_columns (start : ℕ) :
     ¬∀ i : Fin 6, IsUpperColumnWithOrigin (start + i.val) := by
@@ -100,7 +100,7 @@ private theorem upper_witness_iff {n : ℕ} (hn : n < 5000) :
     Finite.runWitnessUpper n ↔ IsUpperColumnWithOrigin n := by
   rw [Finite.runWitnessUpper, IsUpperColumnWithOrigin, Finite.q_eq_runWitnessRow hn]
 
-/-- **Corollary 19, A275885:** the lengths of maximal lower-column runs are
+/-- **Corollary 20, A275885:** the lengths of maximal lower-column runs are
 exactly 1, 2, and 3. Each permitted length is attained by actual greedy queens. -/
 theorem lower_column_run_lengths (length : ℕ) :
     (∃ start, Sequence.MaximalRun (fun n => q n < n) start length) ↔
@@ -116,7 +116,7 @@ theorem lower_column_run_lengths (length : ℕ) :
     refine ⟨Finite.lowerRunWitnessStart length, ?_⟩
     exact (Sequence.maximalRun_congr (fun i hi => lower_witness_iff (by omega))).mp hwitness
 
-/-- **Corollary 19, A275886:** counting the origin as upper, the lengths of
+/-- **Corollary 20, A275886:** counting the origin as upper, the lengths of
 maximal upper-column runs are exactly 1 through 5. -/
 theorem upper_column_run_lengths (length : ℕ) :
     (∃ start, Sequence.MaximalRun IsUpperColumnWithOrigin start length) ↔
@@ -132,7 +132,7 @@ theorem upper_column_run_lengths (length : ℕ) :
     refine ⟨Finite.upperRunWitnessStart length, ?_⟩
     exact (Sequence.maximalRun_congr (fun i hi => upper_witness_iff (by omega))).mp hwitness
 
-/-- **Corollary 19, A275888:** counting the origin as upper, the gaps between
+/-- **Corollary 20, A275888:** counting the origin as upper, the gaps between
 consecutive upper columns are exactly 1 through 4. -/
 theorem upper_column_gaps (gap : ℕ) :
     (∃ start, Sequence.ConsecutiveGap IsUpperColumnWithOrigin start gap) ↔
@@ -152,7 +152,7 @@ theorem upper_column_gaps (gap : ℕ) :
     refine ⟨Finite.upperGapWitnessStart gap, ?_⟩
     exact (Sequence.consecutiveGap_congr (fun i hi => upper_witness_iff (by omega))).mp hwitness
 
-/-- **Corollary 19, A275889:** the gaps between consecutive lower columns are
+/-- **Corollary 20, A275889:** the gaps between consecutive lower columns are
 exactly 1 through 6. -/
 theorem lower_column_gaps (gap : ℕ) :
     (∃ start, Sequence.ConsecutiveGap (fun n => q n < n) start gap) ↔

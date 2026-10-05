@@ -1,10 +1,10 @@
 # Measurement report
 
 This report describes the two computations with the fast generator that the
-paper reports: the timing and memory comparison of Section 7.5,
-and the check of Knuth's ranges through c = 10<sup>11</sup> (the remark on
-1-indexed coordinates in Section 3). The README explains the code and how to
-repeat both.
+paper reports: the timing and memory comparison of Section 7.5, and the scan
+of the first 10<sup>11</sup> columns whose extreme deviations are quoted at
+the end of Section 6.6, which also checks Knuth's ranges. The README
+explains the code and how to repeat both.
 
 ## 1. Generation and hashing (Section 7.5)
 
@@ -155,7 +155,7 @@ and generation (`generation_cpu_seconds`), the elapsed time seen by the
 Python driver (`driver_wall_seconds`), and the kernel's CPU times, page
 faults and context switches. No run had a major page fault.
 
-## 2. The check of Knuth's ranges through c = 10<sup>11</sup>
+## 2. The scan of the first 10<sup>11</sup> columns (Section 6.6)
 
 Knuth observed that, for 1 ≤ c ≤ 10<sup>9</sup>, the one-based rows
 s(c) = q<sub>c−1</sub> + 1 satisfy
@@ -180,8 +180,18 @@ The values are rounded to twelve places; the coordinates determine them
 exactly. The columns comprise 61803398874 upper queens, 38196601125 lower
 queens, and the origin. The last zero-based coordinate is
 (99999999999, 61803398875), and the checksum of all 10<sup>11</sup> rows is
-`6c1f1dc727d673bd`. This extends a finite check; it does not prove Knuth's
-ranges for all c.
+`6c1f1dc727d673bd`.
+
+Theorem 2 of the paper proves Knuth's ranges for every c, so the scan is a
+finite check of a proved statement. Its value is the extremes. In the
+paper's zero-based coordinates, s − cφ = (q<sub>n</sub> − nφ) − 1/φ and
+s − c/φ = (q<sub>n</sub> − n/φ) + 1/φ<sup>2</sup>, so the table above says
+that q<sub>n</sub> − nφ ranges from −0.762211 to 1.232556 over the upper
+queens and q<sub>n</sub> − n/φ from −2.887917 to 3.977939 over the lower
+ones, for n < 10<sup>11</sup>. These are the values that Section 6.6 compares
+with the constants of Theorem 2, (19√5 − 49)/8 ≈ −0.814339 and
+√5 − 1 ≈ 1.236068 for upper queens, 15 − 8√5 ≈ −2.888544 and
+13 − 4√5 ≈ 4.055728 for lower ones.
 
 **Exact comparisons.** Writing the deviations as
 

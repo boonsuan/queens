@@ -3,7 +3,7 @@ import Queens.Finite.IndexedTree
 /-!
 # Vertex payloads for the repeated-run certificate
 
-Corollary 19 uses several fields at each numbered forty-symbol state. A single
+Corollary 20 uses several fields at each numbered forty-symbol state. A single
 balanced lookup shares their index and avoids large-array normalization during
 kernel checking. The upper bit and adjacency are independently aligned with the
 original state graph; the remaining lengths are checked certificate proposals.
@@ -11,7 +11,7 @@ original state graph; the remaining lengths are checked certificate proposals.
 
 namespace Queens.Finite
 
-/-- Corollary 19: local data at a numbered state used by the run-graph checker. -/
+/-- Corollary 20: local data at a numbered state used by the run-graph checker. -/
 structure RunVertexData where
   /-- Whether the latest output column is upper. -/
   upper : Bool

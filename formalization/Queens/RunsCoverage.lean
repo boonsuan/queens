@@ -4,7 +4,7 @@ import Mathlib.Data.Nat.Find
 /-!
 # Coverage by finite maximal runs
 
-Corollary 19 treats runs as consecutive terms of a sequence. A bound on
+Corollary 20 treats runs as consecutive terms of a sequence. A bound on
 constant blocks ensures that every occurrence belongs to a finite maximal run;
 the range statements therefore do not overlook a possible infinite final run.
 The lemmas here apply to any predicate on the natural numbers.
@@ -13,7 +13,7 @@ The lemmas here apply to any predicate on the natural numbers.
 namespace Queens.Sequence
 
 /-- Two maximal runs containing the same index are the same interval.
-This is the uniqueness needed when interpreting the run sequences of Corollary 19. -/
+This is the uniqueness needed when interpreting the run sequences of Corollary 20. -/
 theorem MaximalRun.eq_of_contains {p : ℕ → Prop} {a b l m n : ℕ}
     (ha : MaximalRun p a l) (hb : MaximalRun p b m)
     (han : a ≤ n) (hnal : n < a + l) (hbn : b ≤ n) (hnbm : n < b + m) :
@@ -30,7 +30,7 @@ theorem MaximalRun.eq_of_contains {p : ℕ → Prop} {a b l m n : ℕ}
 
 /-- If arbitrarily placed blocks of a fixed length cannot all satisfy a
 predicate, every occurrence lies in a unique finite maximal run. Applied to
-Corollary 19, this excludes an infinite final run from the sequence interpretation. -/
+Corollary 20, this excludes an infinite final run from the sequence interpretation. -/
 theorem existsUnique_maximalRun_contains {p : ℕ → Prop} {bound n : ℕ}
     (hblock : ∀ s, ¬∀ i : Fin (bound + 1), p (s + i.val)) (hn : p n) :
     ∃! interval : ℕ × ℕ, MaximalRun p interval.1 interval.2 ∧

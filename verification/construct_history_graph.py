@@ -16,7 +16,8 @@ an edge for every output it permits, so it does not depend on the order of
 exploration. The proof does not rely on this construction: verify_tuples.py
 and verify_bitmasks.py check the finished graph with no edges added.
 
-With the defaults (L = 12, N = 30) the result is history.json. A longer
+With the defaults (L = 12, N = 30) the result is history.json, and the
+program exits with an error if it is not. A longer
 history needs a later start, so that the input history before column N has
 positive indices; the OEIS checks use L = 40 and N = 80.
 """
@@ -110,6 +111,8 @@ def main() -> None:
     if (args.memory, args.start) == (12, 30):
         same = json.loads(args.output.read_text()) == json.loads((HERE / 'history.json').read_text())
         print('identical to history.json:', same)
+        if not same:
+            raise SystemExit(1)
 
 
 if __name__ == '__main__':

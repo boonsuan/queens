@@ -4,25 +4,25 @@ import Mathlib.Tactic.Ring
 /-!
 # Exactness of history encodings
 
-Definition 11 uses fixed-length words in base four. These kernel-checked lemmas
+Definition 12 uses fixed-length words in base four. These kernel-checked lemmas
 connect the executable history representation to ordinary lists of symbols;
 they do not depend on the computational certificate.
 -/
 
 namespace Queens.Finite
 
-/-- Definition 11: decoding always produces the specified number of symbols. -/
+/-- Definition 12: decoding always produces the specified number of symbols. -/
 @[simp] theorem decode_length (code length : ℕ) : (decode code length).length = length := by
   induction length generalizing code with
   | zero => rfl
   | succ length ih => simp [decode, ih]
 
-/-- Definition 11: appending one symbol is one base-four accumulation step. -/
+/-- Definition 12: appending one symbol is one base-four accumulation step. -/
 theorem encode_append_singleton (word : List ℕ) (symbol : ℕ) :
     encode (word ++ [symbol]) = 4 * encode word + symbol := by
   simp [encode, List.foldl_append]
 
-/-- Definition 11: the base-four encoding and fixed-length decoding are inverse
+/-- Definition 12: the base-four encoding and fixed-length decoding are inverse
 on words over the paper's alphabet `{0,1,2,3}`. -/
 theorem decode_encode {word : List ℕ} (hword : ∀ symbol ∈ word, symbol < 4) :
     decode (encode word) word.length = word := by
@@ -36,7 +36,7 @@ theorem decode_encode {word : List ℕ} (hword : ∀ symbol ∈ word, symbol < 4
       have hmod : (4 * encode word + symbol) % 4 = symbol := by omega
       rw [hdiv, hmod, ih hw]
 
-/-- Definition 11: accumulator form of the base-four encoding. -/
+/-- Definition 12: accumulator form of the base-four encoding. -/
 theorem encode_foldl (word : List ℕ) (start : ℕ) :
     word.foldl (fun h s => 4 * h + s) start = start * 4 ^ word.length + encode word := by
   induction word generalizing start with
@@ -46,13 +46,13 @@ theorem encode_foldl (word : List ℕ) (start : ℕ) :
       rw [ih (4 * start + symbol), ih symbol]
       ring
 
-/-- Definition 11: concatenating words concatenates their base-four digits. -/
+/-- Definition 12: concatenating words concatenates their base-four digits. -/
 theorem encode_append (left right : List ℕ) :
     encode (left ++ right) = encode left * 4 ^ right.length + encode right := by
   simp only [encode, List.foldl_append]
   exact encode_foldl right _
 
-/-- Definition 11: a valid word fits within its fixed-length encoding range. -/
+/-- Definition 12: a valid word fits within its fixed-length encoding range. -/
 theorem encode_lt_pow {word : List ℕ} (hword : ∀ symbol ∈ word, symbol < 4) :
     encode word < 4 ^ word.length := by
   induction word using List.reverseRecOn with
@@ -64,13 +64,13 @@ theorem encode_lt_pow {word : List ℕ} (hword : ∀ symbol ∈ word, symbol < 4
       rw [encode_append_singleton, List.length_append, List.length_singleton, pow_succ]
       omega
 
-/-- Definition 11: reducing an input history modulo its storage range does
+/-- Definition 12: reducing an input history modulo its storage range does
 not change the next shifted history. -/
 theorem destination_mod_input (history symbol : ℕ) {memory : ℕ} :
     destination (history % 4 ^ memory) symbol memory = destination history symbol memory := by
   simp [destination, Nat.add_mod, Nat.mul_mod]
 
-/-- Definition 11: repeated shift-and-append is base-four accumulation modulo
+/-- Definition 12: repeated shift-and-append is base-four accumulation modulo
 the history range. This identity has no alphabet assumptions. -/
 theorem foldl_destination_mod (word : List ℕ) (history : ℕ) {memory : ℕ} :
     word.foldl (destination (memory := memory)) (history % 4 ^ memory) =
@@ -81,7 +81,7 @@ theorem foldl_destination_mod (word : List ℕ) (history : ℕ) {memory : ℕ} :
       rw [List.foldl_cons, destination_mod_input]
       exact ih (4 * history + symbol)
 
-/-- Definition 11: appending symbols to a valid-length encoded history is
+/-- Definition 12: appending symbols to a valid-length encoded history is
 encoding the concatenated word and retaining the prescribed number of symbols. -/
 theorem foldl_destination (word : List ℕ) {history memory : ℕ}
     (hbound : history < 4 ^ memory) :
@@ -91,7 +91,7 @@ theorem foldl_destination (word : List ℕ) {history memory : ℕ}
   rw [Nat.mod_eq_of_lt hbound, encode_foldl] at h
   exact h
 
-/-- Definition 11: reduction modulo a base-four power keeps exactly that
+/-- Definition 12: reduction modulo a base-four power keeps exactly that
 many final symbols. The length hypothesis excludes any zero-padding issue. -/
 theorem encode_suffix {word : List ℕ} {length : ℕ}
     (hlength : length ≤ word.length) (hword : ∀ s ∈ word, s < 4) :
@@ -129,7 +129,7 @@ theorem foldl_destination_encode {history word : List ℕ} {memory : ℕ}
   simpa [List.length_append, hlength] using h
 
 /-- Section 4.3, an output edge: for any positive history length, append one
-symbol and remove the oldest retained symbol. Corollary 19 uses length forty. -/
+symbol and remove the oldest retained symbol. Corollary 20 uses length forty. -/
 theorem destination_encode_of_pos {history : List ℕ} {symbol memory : ℕ}
     (hmemory : 0 < memory) (hlength : history.length = memory)
     (hhistory : ∀ s ∈ history, s < 4) (hsymbol : symbol < 4) :
@@ -139,7 +139,7 @@ theorem destination_encode_of_pos {history : List ℕ} {symbol memory : ℕ}
   simpa [List.drop_append_of_le_length (by omega : 1 ≤ history.length)] using h
 
 /-- Section 4.3: the twelve-symbol specialization of `destination_encode_of_pos`,
-used by the original verification of Proposition 17. -/
+used by the original verification of Proposition 18. -/
 theorem destination_encode {history : List ℕ} {symbol : ℕ}
     (hlength : history.length = historyLength)
     (hhistory : ∀ s ∈ history, s < 4) (hsymbol : symbol < 4) :

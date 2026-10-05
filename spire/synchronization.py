@@ -6,8 +6,8 @@ cannot read them (spire-at.md, Lemma 2). The true record is never dropped. This 
 that one record is always left after 58 symbols, from any input position p >= 150; Spire reads
 128.
 
-The queen word follows the forty-symbol history graph from column 80 on (the paper, Corollary
-19; ../oeis/results/history-40.json). So at every input position p >= 150 the pair (the copy's
+The queen word follows the forty-symbol history graph from column 80 on (the paper, Appendix
+A3; ../oeis/results/history-40.json). So at every input position p >= 150 the pair (the copy's
 record, the forty symbols before p) is reachable from the pair at 150, by the graph's edges and
 the records' moves (Section 7.3), and the symbols that follow are a path in the graph. The
 program finds every reachable pair, follows every path of the graph from each with the set of
